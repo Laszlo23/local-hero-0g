@@ -973,6 +973,7 @@ export type Database = {
           quests_completed: number | null
           referral_code: string | null
           referral_count: number | null
+          privy_user_id: string | null
           session_start: string | null
           socials: Json | null
           streak: number | null
@@ -981,6 +982,8 @@ export type Database = {
           trust_score: number | null
           updated_at: string
           user_id: string | null
+          wallet_address: string | null
+          wallet_provider: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -1004,6 +1007,7 @@ export type Database = {
           quests_completed?: number | null
           referral_code?: string | null
           referral_count?: number | null
+          privy_user_id?: string | null
           session_start?: string | null
           socials?: Json | null
           streak?: number | null
@@ -1012,6 +1016,8 @@ export type Database = {
           trust_score?: number | null
           updated_at?: string
           user_id?: string | null
+          wallet_address?: string | null
+          wallet_provider?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -1035,6 +1041,7 @@ export type Database = {
           quests_completed?: number | null
           referral_code?: string | null
           referral_count?: number | null
+          privy_user_id?: string | null
           session_start?: string | null
           socials?: Json | null
           streak?: number | null
@@ -1043,6 +1050,8 @@ export type Database = {
           trust_score?: number | null
           updated_at?: string
           user_id?: string | null
+          wallet_address?: string | null
+          wallet_provider?: string | null
         }
         Relationships: []
       }

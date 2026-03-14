@@ -1,0 +1,76 @@
+{
+  "text_scanned": 300,
+  "assets_found": 14,
+  "items": [
+    {
+      "url": "https://localhero.space/assets/0g-logo-BIL2UPg5.png",
+      "file": "src/assets/from-localhero-space/0g-logo-BIL2UPg5.png",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/ar-book-DCYwyBBV.png",
+      "file": "src/assets/from-localhero-space/ar-book-DCYwyBBV.png",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/ar-chest-p_ycK8oS.png",
+      "file": "src/assets/from-localhero-space/ar-chest-p_ycK8oS.png",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/ar-tree-2YTk-rlQ.png",
+      "file": "src/assets/from-localhero-space/ar-tree-2YTk-rlQ.png",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/community-garden-DBPrEJcj.jpg",
+      "file": "src/assets/from-localhero-space/community-garden-DBPrEJcj.jpg",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/hero-community-C-_QE3Ah.jpg",
+      "file": "src/assets/from-localhero-space/hero-community-C-_QE3Ah.jpg",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/hero-logo-glow-ByXlG4Un.png",
+      "file": "src/assets/from-localhero-space/hero-logo-glow-ByXlG4Un.png",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/hero-parallax-cta-XPE7fDtg.jpg",
+      "file": "src/assets/from-localhero-space/hero-parallax-cta-XPE7fDtg.jpg",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/hero-video-COOXquue.mp4",
+      "file": "src/assets/from-localhero-space/hero-video-COOXquue.mp4",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/schools-outdoor-BreiiWMQ.jpg",
+      "file": "src/assets/from-localhero-space/schools-outdoor-BreiiWMQ.jpg",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/story-cafe-B2beocba.jpg",
+      "file": "src/assets/from-localhero-space/story-cafe-B2beocba.jpg",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/assets/story-cleanup-DJ_aaFa8.jpg",
+      "file": "src/assets/from-localhero-space/story-cleanup-DJ_aaFa8.jpg",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/og-image.png",
+      "file": "src/assets/from-localhero-space/og-image.png",
+      "status": "ok"
+    },
+    {
+      "url": "https://localhero.space/pwa-192x192.png",
+      "file": "src/assets/from-localhero-space/pwa-192x192-2.png",
+      "status": "ok"
+    }
+  ]
+}

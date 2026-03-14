@@ -6,11 +6,11 @@ import confetti from "canvas-confetti";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import heroLogo from "@/assets/hero-logo-glow.png";
-import { getDeviceId, type SocialKey } from "@/lib/profile";
+import { completeOnboarding } from "@/lib/api";
+import { type SocialKey } from "@/lib/profile";
 
 const socialConfig: { key: SocialKey; icon: React.ReactNode; label: string; placeholder: string; color: string }[] = [
   { key: "twitter", icon: <Twitter size={16} />, label: "Twitter / X", placeholder: "@handle", color: "text-sky-400" },
@@ -23,7 +23,7 @@ const socialConfig: { key: SocialKey; icon: React.ReactNode; label: string; plac
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { getAccessToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(0);
@@ -63,54 +63,28 @@ const Onboarding = () => {
     setSaving(true);
 
     try {
-      const deviceId = getDeviceId();
       let avatarUrl = avatarPreview;
-
-      // Upload avatar if selected
-      if (avatarFile && user) {
-        const ext = avatarFile.name.split(".").pop();
-        const path = `${user.id}/avatar.${ext}`;
-        const { error: uploadErr } = await supabase.storage
-          .from("avatars")
-          .upload(path, avatarFile, { upsert: true });
-
-        if (uploadErr) {
-          console.error("Avatar upload error:", uploadErr);
-        } else {
-          const { data: { publicUrl } } = supabase.storage.from("avatars").getPublicUrl(path);
-          avatarUrl = publicUrl;
+      if (avatarUrl.startsWith("blob:")) {
+        avatarUrl = "";
+        if (avatarFile) {
+          toast({
+            title: "Avatar not uploaded yet",
+            description: "Image upload migration is pending; profile info was still saved.",
+          });
         }
       }
 
-      // Save profile
-      await supabase.from("user_profiles").upsert({
-        device_id: deviceId,
-        user_id: user?.id,
-        email: user?.email,
-        display_name: displayName,
+      const token = await getAccessToken();
+      if (!token) {
+        throw new Error("No Privy access token found. Please sign in again.");
+      }
+      await completeOnboarding(token, {
+        displayName,
         bio,
         location,
-        avatar_url: avatarUrl,
+        avatarUrl: avatarUrl || null,
         socials,
-        onboarding_completed: true,
-        updated_at: new Date().toISOString(),
-      }, { onConflict: "device_id" });
-
-      // Award signup bonus points
-      const { data: existing } = await supabase
-        .from("hero_points")
-        .select("id")
-        .eq("device_id", deviceId)
-        .eq("reason", "signup_bonus")
-        .maybeSingle();
-
-      if (!existing) {
-        await supabase.from("hero_points").insert({
-          device_id: deviceId,
-          amount: 100,
-          reason: "signup_bonus",
-        });
-      }
+      });
 
       setRewardShown(true);
       setStep(3);
@@ -131,7 +105,7 @@ const Onboarding = () => {
     } finally {
       setSaving(false);
     }
-  }, [saving, avatarFile, avatarPreview, user, displayName, bio, location, socials]);
+  }, [saving, avatarFile, avatarPreview, displayName, bio, location, socials, getAccessToken]);
 
   const canAdvance = step === 0 ? displayName.trim().length > 0 : true;
 

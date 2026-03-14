@@ -1,35 +1,37 @@
-import { supabase } from "@/integrations/supabase/client";
+import { getMeAccessStatus } from "@/lib/api";
 
 interface OnboardingStatusParams {
-  userId?: string | null;
-  deviceId: string;
+  accessToken?: string | null;
 }
 
-export async function hasCompletedOnboarding({ userId, deviceId }: OnboardingStatusParams): Promise<boolean> {
-  if (userId) {
-    const { data: userRecord, error: userError } = await supabase
-      .from("user_profiles")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("onboarding_completed", true)
-      .limit(1)
-      .maybeSingle();
+export interface AccessStatus {
+  onboardingCompleted: boolean;
+  walletLinked: boolean;
+}
 
-    if (!userError && userRecord) {
-      return true;
-    }
+export async function getAccessStatus({ accessToken }: OnboardingStatusParams): Promise<AccessStatus> {
+  if (!accessToken) {
+    return { onboardingCompleted: false, walletLinked: false };
   }
 
-  const { data: deviceRecord, error: deviceError } = await supabase
-    .from("user_profiles")
-    .select("onboarding_completed")
-    .eq("device_id", deviceId)
-    .maybeSingle();
-
-  if (deviceError) {
-    console.error("Failed to check onboarding status:", deviceError);
-    return false;
+  try {
+    const status = await getMeAccessStatus(accessToken);
+    return {
+      onboardingCompleted: status.onboardingCompleted,
+      walletLinked: status.walletLinked,
+    };
+  } catch (error) {
+    console.error("Failed to check access status:", error);
+    return { onboardingCompleted: false, walletLinked: false };
   }
+}
 
-  return !!deviceRecord?.onboarding_completed;
+export async function hasCompletedOnboarding({ accessToken }: OnboardingStatusParams): Promise<boolean> {
+  const status = await getAccessStatus({ accessToken });
+  return status.onboardingCompleted;
+}
+
+export async function hasLinkedWallet({ accessToken }: OnboardingStatusParams): Promise<boolean> {
+  const status = await getAccessStatus({ accessToken });
+  return status.walletLinked;
 }

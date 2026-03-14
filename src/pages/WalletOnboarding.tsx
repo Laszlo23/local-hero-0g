@@ -1,22 +1,31 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Shield, Mail, Smartphone, ChevronRight, Fingerprint, Wallet, Check, Sparkles, Copy, Eye, EyeOff } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import heroLogo from "@/assets/hero-logo-glow.png";
 import ogLogo from "@/assets/0g-logo.png";
 import { applyReferralCode } from "@/lib/referrals";
+import { useAuth } from "@/contexts/AuthContext";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { syncAuthUser } from "@/lib/api";
+import { toast } from "@/hooks/use-toast";
 
 const WalletOnboarding = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { user: authUser, getAccessToken } = useAuth();
+  const { ready, authenticated, user: privyUser, login } = usePrivy();
+  const { wallets } = useWallets();
   const [step, setStep] = useState(0);
   const [method, setMethod] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [showAddress, setShowAddress] = useState(false);
   const [refMessage, setRefMessage] = useState("");
-
-  const mockAddress = "0x7a3F...c9E2";
-  const mockFullAddress = "0x7a3F8b2D1e5C4a6B9f0E3d2C1b4A5c6D7e8F9c9E2";
+  const [isProvisioning, setIsProvisioning] = useState(false);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const loginTriggered = useRef(false);
+  const saveTriggered = useRef(false);
+  const selectedWalletAddress = useMemo(() => wallets[0]?.address ?? "", [wallets]);
 
   // Apply referral code from URL
   useEffect(() => {
@@ -28,19 +37,91 @@ const WalletOnboarding = () => {
     }
   }, [searchParams]);
 
-  const handleMethodSelect = (m: string) => {
-    setMethod(m);
-    if (m === "email") setStep(2);
-    else {
-      setStep(3);
-      setTimeout(() => setStep(4), 2500);
+  useEffect(() => {
+    const hasAppId = Boolean(import.meta.env.VITE_PRIVY_APP_ID);
+    if (!hasAppId) {
+      setWalletError("Privy is not configured. Add VITE_PRIVY_APP_ID to your .env file.");
     }
+  }, []);
+
+  useEffect(() => {
+    if (step !== 3) {
+      loginTriggered.current = false;
+      saveTriggered.current = false;
+      return;
+    }
+
+    if (!ready) return;
+    if (!import.meta.env.VITE_PRIVY_APP_ID) return;
+
+    if (!authenticated) {
+      if (loginTriggered.current) return;
+      loginTriggered.current = true;
+      setIsProvisioning(true);
+      setWalletError(null);
+      void login();
+      return;
+    }
+
+    if (!selectedWalletAddress || saveTriggered.current) return;
+    saveTriggered.current = true;
+    setIsProvisioning(true);
+
+    const saveWallet = async () => {
+      const token = await getAccessToken();
+      if (!token || !privyUser?.id) {
+        throw new Error("Missing authenticated Privy session.");
+      }
+      await syncAuthUser(token, {
+        privyUserId: privyUser.id,
+        email: authUser?.email || privyUser.email?.address || null,
+        walletAddress: selectedWalletAddress,
+      });
+      setStep(4);
+      toast({
+        title: "Wallet ready",
+        description: "Your Privy wallet is now linked to your HERO profile.",
+      });
+    };
+
+    void saveWallet()
+      .catch((err: unknown) => {
+        const description = err instanceof Error ? err.message : "Wallet setup failed.";
+        setWalletError(description);
+        toast({
+          title: "Wallet setup failed",
+          description,
+          variant: "destructive",
+        });
+      })
+      .finally(() => setIsProvisioning(false));
+  }, [step, ready, authenticated, login, selectedWalletAddress, authUser?.email, privyUser?.id, privyUser?.email?.address, getAccessToken]);
+
+  const handleMethodSelect = (m: string) => {
+    if (!import.meta.env.VITE_PRIVY_APP_ID) return;
+    setMethod(m);
+    setWalletError(null);
+    if (m === "email") setStep(2);
+    else setStep(3);
   };
 
   const handleEmailSubmit = () => {
     if (!email) return;
+    if (!import.meta.env.VITE_PRIVY_APP_ID) return;
     setStep(3);
-    setTimeout(() => setStep(4), 2500);
+    setWalletError(null);
+  };
+
+  const prettyAddress = useMemo(() => {
+    if (!selectedWalletAddress) return "Pending wallet address";
+    if (showAddress) return selectedWalletAddress;
+    return `${selectedWalletAddress.slice(0, 6)}...${selectedWalletAddress.slice(-4)}`;
+  }, [selectedWalletAddress, showAddress]);
+
+  const copyAddress = async () => {
+    if (!selectedWalletAddress) return;
+    await navigator.clipboard.writeText(selectedWalletAddress);
+    toast({ title: "Copied", description: "Wallet address copied to clipboard." });
   };
 
   return (
@@ -72,9 +153,12 @@ const WalletOnboarding = () => {
             <button onClick={() => setStep(1)} className="w-full py-4 rounded-2xl font-bold text-sm bg-gradient-hero-glow text-primary-foreground glow-green active:scale-[0.98] transition-all flex items-center justify-center gap-2">
               Create My Wallet <ChevronRight size={18} />
             </button>
-            <button onClick={() => navigate("/app")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <button onClick={() => navigate("/auth")} className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               I already have a wallet
             </button>
+            {walletError && (
+              <p className="text-xs text-destructive">{walletError}</p>
+            )}
           </motion.div>
         )}
 
@@ -154,14 +238,16 @@ const WalletOnboarding = () => {
               <h2 className="font-display text-2xl font-bold text-foreground mb-2">Creating Your Wallet</h2>
               <div className="flex items-center justify-center gap-2">
                 <img src={ogLogo} alt="0G" className="w-4 h-4" />
-                <p className="text-sm text-muted-foreground">Deploying on 0G Chain...</p>
+                <p className="text-sm text-muted-foreground">
+                  {isProvisioning ? "Provisioning your Privy embedded wallet..." : "Waiting for confirmation..."}
+                </p>
               </div>
             </div>
             <div className="space-y-3 max-w-[280px] mx-auto">
               {[
-                { label: "Generating key pair", done: true },
-                { label: "Deploying to 0G Chain", done: true },
-                { label: "Setting up Soulbound ID", done: false },
+                { label: "Authenticating with Privy", done: authenticated },
+                { label: "Generating embedded wallet", done: Boolean(selectedWalletAddress) },
+                { label: "Saving wallet to HERO profile", done: step === 4 },
               ].map((s, i) => (
                 <motion.div
                   key={i}
@@ -179,6 +265,22 @@ const WalletOnboarding = () => {
                 </motion.div>
               ))}
             </div>
+            {walletError && (
+              <div className="space-y-3">
+                <p className="text-xs text-destructive">{walletError}</p>
+                <button
+                  onClick={() => {
+                    loginTriggered.current = false;
+                    saveTriggered.current = false;
+                    setWalletError(null);
+                    setStep(3);
+                  }}
+                  className="text-xs text-primary hover:underline"
+                >
+                  Retry wallet setup
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -208,13 +310,13 @@ const WalletOnboarding = () => {
                     <Wallet size={18} className="text-primary-foreground" />
                   </div>
                   <div className="flex-1">
-                    <p className="font-mono text-sm font-bold text-foreground">{showAddress ? mockFullAddress.slice(0, 20) + "..." : mockAddress}</p>
+                    <p className="font-mono text-sm font-bold text-foreground">{prettyAddress}</p>
                     <p className="text-[10px] text-muted-foreground">Soulbound ID Active</p>
                   </div>
                   <button onClick={() => setShowAddress(!showAddress)} className="w-8 h-8 rounded-lg glass flex items-center justify-center text-muted-foreground">
                     {showAddress ? <EyeOff size={14} /> : <Eye size={14} />}
                   </button>
-                  <button className="w-8 h-8 rounded-lg glass flex items-center justify-center text-muted-foreground">
+                  <button onClick={() => void copyAddress()} className="w-8 h-8 rounded-lg glass flex items-center justify-center text-muted-foreground">
                     <Copy size={14} />
                   </button>
                 </div>
@@ -236,13 +338,13 @@ const WalletOnboarding = () => {
             </div>
 
             <button
-              onClick={() => navigate("/app/community")}
+              onClick={() => navigate(authUser ? "/onboarding" : "/auth")}
               className="w-full py-4 rounded-2xl font-bold text-sm bg-gradient-hero-glow text-primary-foreground glow-green active:scale-[0.98] transition-all flex items-center justify-center gap-2"
             >
-              Meet Your Guide <ChevronRight size={18} />
+              {authUser ? "Continue Profile Setup" : "Sign In to Continue"} <ChevronRight size={18} />
             </button>
             <button
-              onClick={() => navigate("/app")}
+              onClick={() => navigate("/")}
               className="w-full py-3 rounded-xl font-semibold text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Skip for now

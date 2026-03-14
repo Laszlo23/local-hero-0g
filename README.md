@@ -71,3 +71,29 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+
+## Privy auth API (new)
+
+This repo now includes a backend scaffold in `server/` for Privy-first auth with your own Postgres database.
+
+### Backend quick start
+
+```sh
+cd server
+cp .env.example .env
+npm install
+npm run dev
+```
+
+### Initialize database schema
+
+Run the SQL in `server/sql/001_init.sql` against your Postgres database.
+
+### Frontend env
+
+Set these values in your frontend `.env`:
+
+```sh
+VITE_PRIVY_APP_ID=your_privy_app_id
+VITE_API_BASE_URL=http://localhost:8787
+```
