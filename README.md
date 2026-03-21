@@ -109,3 +109,12 @@ The API can upload files to **0G decentralized storage** and expose them at `GET
 3. Onboarding uploads the avatar via `POST /me/storage/upload` (multipart field `file`) before completing the profile.
 
 If storage is not configured, onboarding still completes but skips the avatar (503 response).
+
+## Smart contracts (badges & soulbound ID)
+
+Foundry project in **`contracts/`**:
+
+- **`LocalHeroBadges`** — ERC-1155 badges: users **`mintWithSignature`** after earning a badge in-app; **`AGENT_ROLE`** mints for special events; **`REGISTRAR_ROLE`** registers badge types (metadata URI, caps, soulbound).
+- **`LocalHeroSoulboundIdentity`** — optional ERC-721 soulbound “Hero ID” (non-transferable).
+
+See **`contracts/README.md`** for deploy commands, roles, and EIP-712 field layouts. Frontend helpers: **`src/lib/badgesEip712.ts`**.

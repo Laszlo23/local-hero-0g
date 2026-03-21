@@ -10,6 +10,11 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+
+# Foundry
+contracts/cache
+contracts/out
+contracts/broadcast
 *.local
 
 # Editor directories and files
