@@ -1,3 +1,7 @@
+/**
+ * Overmind streaming chat. Keep the six agent names/duties aligned with `src/lib/agents.ts`
+ * (Quest, Growth, Partner, Reward, Community, Impact) so UI + prompt stay consistent.
+ */
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {

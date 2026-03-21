@@ -10,18 +10,36 @@ import { Navigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import ReactMarkdown from "react-markdown";
 import {
-  Brain, Zap, Users, Handshake, Coins, Shield, TreePine,
+  Brain, Zap, Users, Handshake, Coins, TreePine,
   Send, Loader2, Activity, TrendingUp, Target, Globe,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { ECOSYSTEM_AGENTS, type EcosystemAgentId } from "@/lib/agents";
 
-const AGENTS = [
-  { id: "quest", name: "Quest Agent", icon: Target, color: "text-emerald-400", desc: "Generates & adapts daily quests" },
-  { id: "growth", name: "Growth Agent", icon: TrendingUp, color: "text-blue-400", desc: "User acquisition & virality" },
-  { id: "partner", name: "Partner Agent", icon: Handshake, color: "text-amber-400", desc: "Business onboarding" },
-  { id: "reward", name: "Reward Agent", icon: Coins, color: "text-yellow-400", desc: "HERO economy management" },
-  { id: "community", name: "Community Agent", icon: Users, color: "text-pink-400", desc: "Support & moderation" },
-  { id: "impact", name: "Impact Agent", icon: TreePine, color: "text-green-400", desc: "Real-world impact tracking" },
-];
+const AGENT_ICONS: Record<EcosystemAgentId, LucideIcon> = {
+  quest: Target,
+  growth: TrendingUp,
+  partner: Handshake,
+  reward: Coins,
+  community: Users,
+  impact: TreePine,
+};
+
+const AGENT_COLORS: Record<EcosystemAgentId, string> = {
+  quest: "text-emerald-400",
+  growth: "text-blue-400",
+  partner: "text-amber-400",
+  reward: "text-yellow-400",
+  community: "text-pink-400",
+  impact: "text-green-400",
+};
+
+const AGENTS = ECOSYSTEM_AGENTS.map((a) => ({
+  ...a,
+  icon: AGENT_ICONS[a.id],
+  color: AGENT_COLORS[a.id],
+  desc: a.shortDesc,
+}));
 
 interface Metrics {
   totalUsers: number;

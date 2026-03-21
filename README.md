@@ -78,4 +78,12 @@ forge test
 | `npm run dev` | Vite dev server |
 | `npm run build` | Production build |
 | `npm run lint` | ESLint |
+| `npm test` | Vitest (agents, API route audit, contract surface, App routes) |
+| `npm run test:contracts` | Foundry tests in `contracts/` |
+| `npm run test:all` | Vitest + Foundry |
+
+## Agents, roles & audits
+
+- **Operations guide:** [`docs/AGENTS_AND_OPERATIONS.md`](docs/AGENTS_AND_OPERATIONS.md) — six Overmind agents, 777 program, Supabase admin/moderator, on-chain `AGENT_ROLE`.
+- **Release checklist:** [`docs/AUDIT_CHECKLIST.md`](docs/AUDIT_CHECKLIST.md) — auth, storage, contracts, admin.
 
