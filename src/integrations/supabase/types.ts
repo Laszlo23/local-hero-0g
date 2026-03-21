@@ -342,6 +342,169 @@ export type Database = {
         }
         Relationships: []
       }
+      educational_quest_progress: {
+        Row: {
+          completed_at: string | null
+          completed_step_indices: number[]
+          created_at: string
+          current_step_index: number
+          device_id: string
+          id: string
+          quest_id: string
+          updated_at: string
+        }
+        Insert: {
+          completed_at?: string | null
+          completed_step_indices?: number[]
+          created_at?: string
+          current_step_index?: number
+          device_id: string
+          id?: string
+          quest_id: string
+          updated_at?: string
+        }
+        Update: {
+          completed_at?: string | null
+          completed_step_indices?: number[]
+          created_at?: string
+          current_step_index?: number
+          device_id?: string
+          id?: string
+          quest_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educational_quest_progress_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "educational_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      educational_quest_steps: {
+        Row: {
+          ar_emoji: string
+          ar_visual: string
+          ar_x: number
+          ar_y: number
+          created_at: string
+          evidence_type: string
+          id: string
+          instruction: string
+          points_override: number | null
+          qr_expected: string | null
+          quest_id: string
+          quiz_correct: string | null
+          quiz_option_a: string | null
+          quiz_option_b: string | null
+          quiz_prompt: string | null
+          step_index: number
+          title: string
+        }
+        Insert: {
+          ar_emoji?: string
+          ar_visual?: string
+          ar_x?: number
+          ar_y?: number
+          created_at?: string
+          evidence_type?: string
+          id?: string
+          instruction: string
+          points_override?: number | null
+          qr_expected?: string | null
+          quest_id: string
+          quiz_correct?: string | null
+          quiz_option_a?: string | null
+          quiz_option_b?: string | null
+          quiz_prompt?: string | null
+          step_index: number
+          title: string
+        }
+        Update: {
+          ar_emoji?: string
+          ar_visual?: string
+          ar_x?: number
+          ar_y?: number
+          created_at?: string
+          evidence_type?: string
+          id?: string
+          instruction?: string
+          points_override?: number | null
+          qr_expected?: string | null
+          quest_id?: string
+          quiz_correct?: string | null
+          quiz_option_a?: string | null
+          quiz_option_b?: string | null
+          quiz_prompt?: string | null
+          step_index?: number
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "educational_quest_steps_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "educational_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      educational_quests: {
+        Row: {
+          age_max: number
+          age_min: number
+          bonus_complete: number
+          created_at: string
+          id: string
+          learning_objectives: Json
+          points_per_step: number
+          quest_type: string
+          slug: string
+          sort_order: number
+          subject_tags: string[]
+          summary: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          age_max?: number
+          age_min?: number
+          bonus_complete?: number
+          created_at?: string
+          id?: string
+          learning_objectives?: Json
+          points_per_step?: number
+          quest_type?: string
+          slug: string
+          sort_order?: number
+          subject_tags?: string[]
+          summary?: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          age_max?: number
+          age_min?: number
+          bonus_complete?: number
+          created_at?: string
+          id?: string
+          learning_objectives?: Json
+          points_per_step?: number
+          quest_type?: string
+          slug?: string
+          sort_order?: number
+          subject_tags?: string[]
+          summary?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: []
+      }
       discovery_drop_claims: {
         Row: {
           claimed_at: string

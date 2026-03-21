@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronLeft, Focus, MapPin, Navigation, Scan, Sparkles, X, Zap, QrCode, Check, Gift, Key } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { EducationalArQuestView } from "@/components/educational/EducationalArQuestView";
 import { motion, AnimatePresence } from "framer-motion";
 import arOverlay from "@/assets/ar-overlay.png";
 import arChest from "@/assets/ar-chest.png";
@@ -16,7 +17,7 @@ const arObjects = [
   { id: 3, name: "Knowledge Book", img: arBook, points: 50, type: "Learn Quest", x: 75, y: 60 },
 ];
 
-const ARQuest = () => {
+const ARQuestPlayground = () => {
   const navigate = useNavigate();
   const [scanning, setScanning] = useState(false);
   const [selectedObject, setSelectedObject] = useState<typeof arObjects[0] | null>(null);
@@ -479,5 +480,12 @@ const QrScannerView = ({ onResult }: { onResult: (text: string) => void }) => {
     </div>
   );
 };
+
+function ARQuest() {
+  const [searchParams] = useSearchParams();
+  const slug = searchParams.get("quest");
+  if (slug) return <EducationalArQuestView slug={slug} />;
+  return <ARQuestPlayground />;
+}
 
 export default ARQuest;

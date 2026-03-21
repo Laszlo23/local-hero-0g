@@ -52,7 +52,7 @@ Web app and backend for **Local Hero** — community quests, profiles, and on-ch
 | **Explore** | `/app/explore` | Map / discovery |
 | **Quests** | `/app/quests` | Story & daily-style quests; ties into Supabase points / impact where wired |
 | **AR Quest** | `/app/ar` | AR quest flow |
-| **Schools** | `/app/schools` | School-oriented content |
+| **Schools** | `/app/schools` | School leaderboard + **class AR trails** (published `educational_quests` in Supabase) → `/app/ar?quest=…` |
 | **Leaderboard** | `/app/leaderboard` | Rankings |
 | **Profile** | `/app/profile` | User profile + links (e.g. redeem, mint, contracts) |
 | **Redeem HERO** | `/app/redeem` | Exchange **server** HERO points for on-chain **HERO** ERC-20 (when API + token configured) |
@@ -187,6 +187,7 @@ cd contracts && forge build && forge test
 | [`docs/POINTS_AND_TOKENS.md`](docs/POINTS_AND_TOKENS.md) | HERO points + token redeem |
 | [`docs/HERO_TOKEN_TECHNICAL_PAPER.md`](docs/HERO_TOKEN_TECHNICAL_PAPER.md) | Token cap, multisig, liquidity (also **`/hero-token`**) |
 | [`docs/COMMUNITY_SIGNALS.md`](docs/COMMUNITY_SIGNALS.md) | Public heads-up reports & `community_signals` table |
+| [`docs/EDUCATIONAL_AR_QUESTS.md`](docs/EDUCATIONAL_AR_QUESTS.md) | Plan: class-sized educational AR + real-world / plant quests for creators |
 | [`contracts/README.md`](contracts/README.md) | Solidity contracts & deploy |
 
 ---

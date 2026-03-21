@@ -1,12 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { BookOpen, GraduationCap, Leaf, MapPin, Star, Trophy, Users } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { BookOpen, GraduationCap, ScanLine } from "lucide-react";
 import { StaggerContainer, FadeUpItem, BreathingGlow, FloatingParticle } from "@/components/Animations";
 import { supabase } from "@/integrations/supabase/client";
 import { useDailyQuests } from "@/hooks/use-daily-quests";
+import { listPublishedEducationalQuests, type EducationalQuest } from "@/lib/educationalQuests";
 
 const Schools = () => {
+  const navigate = useNavigate();
   const [schools, setSchools] = useState<any[]>([]);
+  const [eduQuests, setEduQuests] = useState<EducationalQuest[]>([]);
   const { quests } = useDailyQuests();
   const learningQuests = quests.filter(q => q.category.toLowerCase() === "outdoors" || q.category.toLowerCase() === "community");
 
@@ -14,6 +18,10 @@ const Schools = () => {
     supabase.from("schools").select("*").order("total_points", { ascending: false }).limit(10).then(({ data }) => {
       if (data) setSchools(data);
     });
+  }, []);
+
+  useEffect(() => {
+    void listPublishedEducationalQuests().then(setEduQuests);
   }, []);
 
   return (
@@ -49,6 +57,60 @@ const Schools = () => {
           </div>
         </div>
       </motion.div>
+
+      {/* Class AR quests (Supabase educational_quests) */}
+      <div>
+        <h3 className="font-display font-bold text-foreground mb-1 flex items-center gap-2">
+          <ScanLine size={18} className="text-primary" />
+          Class AR trails
+        </h3>
+        <p className="text-xs text-muted-foreground mb-3">
+          Teacher- or creator-authored outings: AR markers, outdoor tasks, quizzes, and class QR checkpoints. Opens in the AR experience.
+        </p>
+        {eduQuests.length > 0 ? (
+          <StaggerContainer className="space-y-3">
+            {eduQuests.map((q) => (
+              <FadeUpItem key={q.id}>
+                <motion.button
+                  type="button"
+                  onClick={() => navigate(`/app/ar?quest=${encodeURIComponent(q.slug)}`)}
+                  className="glass-card-hover w-full rounded-2xl p-4 text-left"
+                  whileHover={{ x: 3 }}
+                  whileTap={{ scale: 0.99 }}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/15 text-2xl">
+                      🌿
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <h4 className="font-bold text-sm text-foreground">{q.title}</h4>
+                      <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{q.summary}</p>
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        <span className="rounded-full bg-muted/50 px-2 py-0.5 text-[9px] font-semibold text-muted-foreground">
+                          Ages {q.age_min}–{q.age_max}
+                        </span>
+                        {q.subject_tags?.slice(0, 3).map((t) => (
+                          <span key={t} className="rounded-full bg-hero-green-glow/15 px-2 py-0.5 text-[9px] font-semibold text-hero-green-glow">
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                    <ScanLine size={18} className="mt-1 shrink-0 text-primary opacity-70" />
+                  </div>
+                </motion.button>
+              </FadeUpItem>
+            ))}
+          </StaggerContainer>
+        ) : (
+          <div className="glass-card rounded-2xl p-5 text-center">
+            <p className="text-xs text-muted-foreground">
+              No class trails published yet. Run the Supabase migration{" "}
+              <code className="rounded bg-muted px-1 text-[10px]">20260321120000_educational_quests.sql</code> and refresh.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Available Learning Quests */}
       <div>
