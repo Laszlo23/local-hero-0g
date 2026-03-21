@@ -1,120 +1,81 @@
-# Welcome to your Lovable project
+# Local Hero (0G)
 
-## Project info
+Web app and backend for **Local Hero** — community quests, profiles, and on-chain badges on **[0G](https://0g.ai/)** (Galileo testnet / mainnet).
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Stack
 
-## How can I edit this code?
+- **Frontend**: Vite, React, TypeScript, Tailwind CSS, shadcn-ui  
+- **Auth**: [Privy](https://privy.io/) (embedded wallet)  
+- **API**: Node (Express) in `server/` + Postgres  
+- **Storage**: [0G decentralized storage](https://docs.0g.ai/) for avatars (optional)  
+- **Contracts**: Foundry + OpenZeppelin in `contracts/` (ERC-1155 badges, soulbound Hero ID)
 
-There are several ways of editing your application.
+## Prerequisites
 
-**Use Lovable**
+- Node.js 18+ and npm  
+- Postgres (local or Docker) for the API  
+- Optional: [Foundry](https://book.getfoundry.sh/) for Solidity build/test  
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
+## Quick start — frontend
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
-
-## Privy auth API (new)
-
-This repo now includes a backend scaffold in `server/` for Privy-first auth with your own Postgres database.
-
-### Backend quick start
-
-```sh
-cd server
-cp .env.example .env
+git clone <repo-url>
+cd local-hero-0g
+cp .env.example .env   # set VITE_PRIVY_APP_ID, VITE_API_BASE_URL
 npm install
 npm run dev
 ```
 
-### Initialize database schema
-
-Run the SQL in `server/sql/001_init.sql` against your Postgres database.
-
-### Frontend env
-
-Copy `.env.example` to `.env` and set:
+## Quick start — API
 
 ```sh
-VITE_PRIVY_APP_ID=your_privy_app_id
-VITE_API_BASE_URL=http://localhost:8787
+cd server
+cp .env.example .env   # DATABASE_URL, Privy JWKS, optional 0G storage keys
+npm install
+npm run dev
 ```
 
-Optional: `VITE_0G_NETWORK`, `VITE_0G_RPC_TESTNET`, `VITE_0G_RPC_MAINNET` to align the Privy embedded wallet with 0G chains.
+Apply the schema: `server/sql/001_init.sql` on your Postgres database.
 
-### 0G Storage (avatars / files)
+### Frontend environment
 
-The API can upload files to **0G decentralized storage** and expose them at `GET /storage/files/:rootHash` (no auth — suitable for `avatar_url` in the DB).
+| Variable | Purpose |
+|----------|---------|
+| `VITE_PRIVY_APP_ID` | Privy application ID |
+| `VITE_API_BASE_URL` | Base URL of the API (e.g. `http://localhost:8787`) |
+| `VITE_0G_NETWORK` | Optional: `testnet` or `mainnet` for default 0G chain |
+| `VITE_0G_RPC_TESTNET` / `VITE_0G_RPC_MAINNET` | Optional RPC overrides |
 
-1. Fund a testnet wallet and set `OG_0G_STORAGE_PRIVATE_KEY` in `server/.env` (see `server/.env.example`).
-2. Set `PUBLIC_API_BASE_URL` to the same origin the browser will use to load images (e.g. `http://localhost:8787` locally).
-3. Onboarding uploads the avatar via `POST /me/storage/upload` (multipart field `file`) before completing the profile.
+### 0G storage (avatars)
 
-If storage is not configured, onboarding still completes but skips the avatar (503 response).
+The API can upload files to 0G storage and serve them at `GET /storage/files/:rootHash` (public, suitable for `avatar_url`).
 
-## Smart contracts (badges & soulbound ID)
+1. Set `OG_0G_STORAGE_PRIVATE_KEY` and related vars in `server/.env` (see `server/.env.example`).  
+2. Set `PUBLIC_API_BASE_URL` to the API origin the browser uses for image URLs.  
+3. Onboarding uses `POST /me/storage/upload` before profile completion.  
 
-Foundry project in **`contracts/`**:
+If storage is not configured, onboarding can still complete without an avatar.
 
-- **`LocalHeroBadges`** — ERC-1155 badges: users **`mintWithSignature`** after earning a badge in-app; **`AGENT_ROLE`** mints for special events; **`REGISTRAR_ROLE`** registers badge types (metadata URI, caps, soulbound).
-- **`LocalHeroSoulboundIdentity`** — optional ERC-721 soulbound “Hero ID” (non-transferable).
+## Smart contracts
 
-See **`contracts/README.md`** for deploy commands, roles, and EIP-712 field layouts. Frontend helpers: **`src/lib/badgesEip712.ts`**.
+See **`contracts/README.md`** for:
+
+- `LocalHeroBadges` (ERC-1155) — signature-based mints, agent mints, registrars  
+- `LocalHeroSoulboundIdentity` (ERC-721 soulbound)  
+
+EIP-712 helpers for signing: **`src/lib/badgesEip712.ts`**.
+
+```sh
+cd contracts
+forge build
+forge test
+```
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run dev` | Vite dev server |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+
