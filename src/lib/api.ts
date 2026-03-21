@@ -1,5 +1,16 @@
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
+/** Thrown for failed API responses; use `status` to branch (e.g. 503 storage unavailable). */
+export class HttpError extends Error {
+  constructor(
+    message: string,
+    public readonly status: number
+  ) {
+    super(message);
+    this.name = "HttpError";
+  }
+}
+
 function toApiUrl(path: string): string {
   if (/^https?:\/\//.test(path)) return path;
   const normalized = path.startsWith("/") ? path : `/${path}`;
@@ -22,7 +33,7 @@ export async function apiRequest<T>(
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `API request failed (${response.status})`);
+    throw new HttpError(text || `API request failed (${response.status})`, response.status);
   }
 
   if (response.status === 204) {
@@ -84,4 +95,26 @@ export async function completeOnboarding(accessToken: string, payload: CompleteO
     accessToken,
     body: JSON.stringify(payload),
   });
+}
+
+export interface StorageUploadResponse {
+  rootHash: string;
+  txHash?: string;
+  url: string;
+}
+
+/** Upload a file to 0G via the API (multipart field name: `file`). */
+export async function uploadStorageFile(accessToken: string, file: File): Promise<StorageUploadResponse> {
+  const form = new FormData();
+  form.append("file", file);
+  const response = await fetch(toApiUrl("/me/storage/upload"), {
+    method: "POST",
+    headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+    body: form,
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    throw new HttpError(text || `Upload failed (${response.status})`, response.status);
+  }
+  return (await response.json()) as StorageUploadResponse;
 }

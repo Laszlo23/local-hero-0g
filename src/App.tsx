@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { lazy, Suspense } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { PrivyProvider } from "@privy-io/react-auth";
+import { getDefault0gChain, getSupported0gChains } from "@/lib/zeroGChains";
 
 // Eager: landing page (critical path)
 import Landing from "./pages/Landing";
@@ -51,6 +52,8 @@ const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 const privyAppId = import.meta.env.VITE_PRIVY_APP_ID;
+const zeroGChains = getSupported0gChains();
+const default0gChain = getDefault0gChain();
 const LazyFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
@@ -63,6 +66,8 @@ const App = () => (
       appId={privyAppId || "missing-privy-app-id"}
       config={{
         loginMethods: ["email", "google", "apple", "sms"],
+        supportedChains: zeroGChains,
+        defaultChain: default0gChain,
         embeddedWallets: {
           createOnLogin: "users-without-wallets",
         },

@@ -1,8 +1,27 @@
+import { randomUUID } from "crypto";
+import { unlink } from "fs/promises";
+import { join } from "path";
+import { tmpdir } from "os";
 import { Router } from "express";
+import multer from "multer";
 import { z } from "zod";
 import { db } from "./db.js";
 import type { AuthenticatedRequest } from "./auth.js";
 import { requirePrivyAuth } from "./auth.js";
+import { config } from "./config.js";
+import {
+  download0gFileToBuffer,
+  is0gStorageConfigured,
+  isLikelyRootHash,
+  readDownloadedFile,
+  sniffContentType,
+  uploadBytesTo0gStorage,
+} from "./storage0g.js";
+
+const uploadMiddleware = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 const syncPayloadSchema = z.object({
   privyUserId: z.string().min(1),
@@ -230,5 +249,74 @@ router.post("/me/onboarding/complete", requirePrivyAuth, async (req: Authenticat
     res.status(500).json({ error: "Failed to complete onboarding" });
   } finally {
     client.release();
+  }
+});
+
+router.post(
+  "/me/storage/upload",
+  requirePrivyAuth,
+  uploadMiddleware.single("file"),
+  async (req: AuthenticatedRequest, res) => {
+    const auth = req.auth;
+    if (!auth) {
+      res.status(401).json({ error: "Missing auth context" });
+      return;
+    }
+
+    const file = (req as AuthenticatedRequest & { file?: { buffer: Buffer; originalname: string } }).file;
+    if (!file?.buffer) {
+      res.status(400).json({ error: 'Missing file (multipart field "file")' });
+      return;
+    }
+
+    if (!is0gStorageConfigured()) {
+      res.status(503).json({ error: "0G storage is not configured on this server" });
+      return;
+    }
+
+    try {
+      const { rootHash, txHash } = await uploadBytesTo0gStorage(file.buffer, file.originalname);
+      const base = (config.publicApiBaseUrl || `http://127.0.0.1:${config.port}`).replace(/\/$/, "");
+      const url = `${base}/storage/files/${encodeURIComponent(rootHash)}`;
+      res.json({ rootHash, txHash, url });
+    } catch (error) {
+      console.error("Failed /me/storage/upload:", error);
+      res.status(500).json({ error: error instanceof Error ? error.message : "Upload failed" });
+    }
+  }
+);
+
+/** Public file proxy — avatar URLs stored in DB must resolve without auth headers. */
+router.get("/storage/files/:rootHash", async (req, res) => {
+  if (!is0gStorageConfigured()) {
+    res.status(503).json({ error: "0G storage is not configured on this server" });
+    return;
+  }
+
+  let rootHash = req.params.rootHash;
+  try {
+    rootHash = decodeURIComponent(rootHash);
+  } catch {
+    res.status(400).json({ error: "Invalid root hash" });
+    return;
+  }
+
+  if (!isLikelyRootHash(rootHash)) {
+    res.status(400).json({ error: "Invalid root hash" });
+    return;
+  }
+
+  const outPath = join(tmpdir(), `zg-dl-${randomUUID()}`);
+  try {
+    await download0gFileToBuffer(rootHash, outPath);
+    const buf = await readDownloadedFile(outPath);
+    await unlink(outPath);
+    res.setHeader("Cache-Control", "public, max-age=3600");
+    res.type(sniffContentType(buf));
+    res.send(buf);
+  } catch (error) {
+    await unlink(outPath).catch(() => {});
+    console.error("Failed /storage/files:", error);
+    res.status(404).json({ error: "File not found" });
   }
 });

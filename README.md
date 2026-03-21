@@ -91,9 +91,21 @@ Run the SQL in `server/sql/001_init.sql` against your Postgres database.
 
 ### Frontend env
 
-Set these values in your frontend `.env`:
+Copy `.env.example` to `.env` and set:
 
 ```sh
 VITE_PRIVY_APP_ID=your_privy_app_id
 VITE_API_BASE_URL=http://localhost:8787
 ```
+
+Optional: `VITE_0G_NETWORK`, `VITE_0G_RPC_TESTNET`, `VITE_0G_RPC_MAINNET` to align the Privy embedded wallet with 0G chains.
+
+### 0G Storage (avatars / files)
+
+The API can upload files to **0G decentralized storage** and expose them at `GET /storage/files/:rootHash` (no auth — suitable for `avatar_url` in the DB).
+
+1. Fund a testnet wallet and set `OG_0G_STORAGE_PRIVATE_KEY` in `server/.env` (see `server/.env.example`).
+2. Set `PUBLIC_API_BASE_URL` to the same origin the browser will use to load images (e.g. `http://localhost:8787` locally).
+3. Onboarding uploads the avatar via `POST /me/storage/upload` (multipart field `file`) before completing the profile.
+
+If storage is not configured, onboarding still completes but skips the avatar (503 response).

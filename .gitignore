@@ -26,3 +26,5 @@ dist-ssr
 .localhero_key
 .env
 .env.*
+!.env.example
+!server/.env.example

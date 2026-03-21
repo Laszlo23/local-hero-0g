@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import heroLogo from "@/assets/hero-logo-glow.png";
-import { completeOnboarding } from "@/lib/api";
+import { completeOnboarding, HttpError, uploadStorageFile } from "@/lib/api";
 import { type SocialKey } from "@/lib/profile";
 
 const socialConfig: { key: SocialKey; icon: React.ReactNode; label: string; placeholder: string; color: string }[] = [
@@ -23,7 +23,7 @@ const socialConfig: { key: SocialKey; icon: React.ReactNode; label: string; plac
 
 const Onboarding = () => {
   const navigate = useNavigate();
-  const { getAccessToken } = useAuth();
+  const { user, getAccessToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [step, setStep] = useState(0);
@@ -63,26 +63,43 @@ const Onboarding = () => {
     setSaving(true);
 
     try {
-      let avatarUrl = avatarPreview;
-      if (avatarUrl.startsWith("blob:")) {
-        avatarUrl = "";
-        if (avatarFile) {
-          toast({
-            title: "Avatar not uploaded yet",
-            description: "Image upload migration is pending; profile info was still saved.",
-          });
-        }
-      }
-
       const token = await getAccessToken();
       if (!token) {
         throw new Error("No Privy access token found. Please sign in again.");
       }
+
+      let avatarUrl: string | null = null;
+      if (avatarFile) {
+        try {
+          const uploaded = await uploadStorageFile(token, avatarFile);
+          avatarUrl = uploaded.url;
+          setAvatarPreview(uploaded.url);
+        } catch (uploadErr: unknown) {
+          if (uploadErr instanceof HttpError && uploadErr.status === 503) {
+            toast({
+              title: "Avatar skipped",
+              description: "0G storage is not configured on the server (set OG_0G_STORAGE_PRIVATE_KEY). Completing without photo.",
+            });
+            avatarUrl = null;
+          } else {
+            const msg = uploadErr instanceof Error ? uploadErr.message : String(uploadErr);
+            toast({
+              title: "Avatar upload failed",
+              description: msg,
+              variant: "destructive",
+            });
+            throw uploadErr;
+          }
+        }
+      } else if (avatarPreview && !avatarPreview.startsWith("blob:")) {
+        avatarUrl = avatarPreview;
+      }
+
       await completeOnboarding(token, {
         displayName,
         bio,
         location,
-        avatarUrl: avatarUrl || null,
+        avatarUrl,
         socials,
       });
 
