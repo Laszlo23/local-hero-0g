@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import ShareMilestoneModal from "@/components/ShareMilestoneModal";
 import type { MilestoneCardData } from "@/lib/milestone-card";
-import { Award, ChevronRight, Edit3, Flame, LogOut, Settings, Share2, Shield, Star, QrCode, FileCode, Gem, Globe, Twitter, Instagram, Github, Linkedin, MessageCircle, ExternalLink, Check, X } from "lucide-react";
+import { Award, ChevronRight, Edit3, Flame, LogOut, Settings, Share2, Shield, Star, QrCode, FileCode, Gem, Globe, Twitter, Instagram, Github, Linkedin, MessageCircle, ExternalLink, Check, X, Coins } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NotificationCenter from "@/components/NotificationCenter";
 import { Input } from "@/components/ui/input";
@@ -203,7 +203,7 @@ const Profile = () => {
       </div>
 
       {/* Web3 Actions */}
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-2 gap-2.5">
         <button onClick={() => navigate("/app/create-qr")} className="glass-card-hover rounded-xl p-3.5 text-center transition-all active:scale-[0.97]">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center mx-auto mb-1.5">
             <QrCode size={18} className="text-cyan-400" />
@@ -221,6 +221,12 @@ const Profile = () => {
             <FileCode size={18} className="text-purple-400" />
           </div>
           <p className="text-[10px] font-bold text-foreground">Contracts</p>
+        </button>
+        <button onClick={() => navigate("/app/redeem")} className="glass-card-hover rounded-xl p-3.5 text-center transition-all active:scale-[0.97]">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-500/20 flex items-center justify-center mx-auto mb-1.5">
+            <Coins size={18} className="text-emerald-400" />
+          </div>
+          <p className="text-[10px] font-bold text-foreground">Redeem HERO</p>
         </button>
       </div>
 

@@ -15,6 +15,8 @@ const repoRoot = join(__dirname, "../..");
 const SERVER_ROUTE_SNIPPETS: Record<(typeof EXPECTED_AUTH_API_ROUTES)[number], string> = {
   "GET /health": `router.get("/health"`,
   "POST /auth/sync": `router.post("/auth/sync"`,
+  "GET /me/points": `router.get("/me/points"`,
+  "POST /me/redeem": `router.post("/me/redeem"`,
   "GET /me/access-status": `router.get("/me/access-status"`,
   "POST /me/onboarding/complete": `router.post("/me/onboarding/complete"`,
   "POST /me/storage/upload": `"/me/storage/upload"`,

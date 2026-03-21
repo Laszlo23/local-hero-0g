@@ -1,11 +1,12 @@
 # Local Hero — on-chain contracts
 
-Foundry project for **achievement badges (ERC-1155)** and an optional **soulbound Hero ID (ERC-721)** on any EVM chain (e.g. **0G Galileo testnet** `16602` or **0G mainnet** `16661`).
+Foundry project for **HERO ERC-20 (points redeem)**, **achievement badges (ERC-1155)**, and an optional **soulbound Hero ID (ERC-721)** on any EVM chain (e.g. **0G Galileo testnet** `16602` or **0G mainnet** `16661`).
 
 ## Contracts
 
 | Contract | File | Purpose |
 |----------|------|---------|
+| **HeroToken** | `src/HeroToken.sol` | ERC-20 **HERO** (18 decimals). Only **`MINTER_ROLE`** can `mint` — used by the Node API after deducting off-chain points (`POST /me/redeem`). |
 | **LocalHeroBadges** | `src/LocalHeroBadges.sol` | Multi-badge collection. Users **mint with an EIP-712 voucher** signed by a `SIGNER_ROLE` key (backend). **Agents** (`AGENT_ROLE`) mint for events. **Registrars** (`REGISTRAR_ROLE`) register badge types (metadata URI, max supply, soulbound flag). |
 | **LocalHeroSoulboundIdentity** | `src/LocalHeroSoulboundIdentity.sol` | One non-transferable ERC-721 per address (`tokenId = uint256(uint160(wallet))`). Claim via signed voucher or `AGENT_ROLE`. |
 

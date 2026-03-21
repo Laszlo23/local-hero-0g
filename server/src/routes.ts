@@ -17,6 +17,13 @@ import {
   sniffContentType,
   uploadBytesTo0gStorage,
 } from "./storage0g.js";
+import { getAvailablePoints } from "./points.js";
+import {
+  isRedeemConfigured,
+  mintHeroTokens,
+  normalizeEvmAddress,
+  pointsToTokenWei,
+} from "./tokenRedeem.js";
 
 const uploadMiddleware = multer({
   storage: multer.memoryStorage(),
@@ -35,6 +42,11 @@ const completeOnboardingSchema = z.object({
   location: z.string().max(100).optional().default(""),
   avatarUrl: z.string().url().optional().nullable(),
   socials: z.record(z.string(), z.string()).optional().default({}),
+});
+
+const redeemPointsSchema = z.object({
+  pointsAmount: z.number().int().positive().max(100_000_000),
+  recipientAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
 });
 
 export const router = Router();
@@ -135,6 +147,175 @@ router.post("/auth/sync", requirePrivyAuth, async (req: AuthenticatedRequest, re
     res.status(500).json({ error: "Failed to sync auth user" });
   } finally {
     client.release();
+  }
+});
+
+router.get("/me/points", requirePrivyAuth, async (req: AuthenticatedRequest, res) => {
+  const auth = req.auth;
+  if (!auth) {
+    res.status(401).json({ error: "Missing auth context" });
+    return;
+  }
+
+  const client = await db.connect();
+  try {
+    const userResult = await client.query<{ id: string }>(`select id from users where privy_user_id = $1 limit 1`, [
+      auth.privyUserId,
+    ]);
+    if (!userResult.rowCount) {
+      res.json({
+        balance: 0,
+        pointsPerToken: config.pointsPerHeroToken,
+        minRedeemPoints: config.minRedeemPoints,
+        tokenSymbol: "HERO",
+        redeemEnabled: isRedeemConfigured(),
+        chainId: config.heroChainId,
+      });
+      return;
+    }
+    const balance = await getAvailablePoints(client, userResult.rows[0].id);
+    res.json({
+      balance,
+      pointsPerToken: config.pointsPerHeroToken,
+      minRedeemPoints: config.minRedeemPoints,
+      tokenSymbol: "HERO",
+      redeemEnabled: isRedeemConfigured(),
+      chainId: config.heroChainId,
+      tokenAddress: config.heroTokenAddress ?? null,
+    });
+  } catch (error) {
+    console.error("Failed /me/points:", error);
+    res.status(500).json({ error: "Failed to load points" });
+  } finally {
+    client.release();
+  }
+});
+
+router.post("/me/redeem", requirePrivyAuth, async (req: AuthenticatedRequest, res) => {
+  const auth = req.auth;
+  if (!auth) {
+    res.status(401).json({ error: "Missing auth context" });
+    return;
+  }
+
+  if (!isRedeemConfigured()) {
+    res.status(503).json({ error: "Token redeem is not configured on this server" });
+    return;
+  }
+
+  const parsed = redeemPointsSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
+    return;
+  }
+
+  const { pointsAmount, recipientAddress: bodyRecipient } = parsed.data;
+  if (pointsAmount < config.minRedeemPoints) {
+    res.status(400).json({ error: `Minimum redeem is ${config.minRedeemPoints} points` });
+    return;
+  }
+
+  let recipient: string;
+  try {
+    recipient = bodyRecipient ? normalizeEvmAddress(bodyRecipient) : "";
+  } catch {
+    res.status(400).json({ error: "Invalid recipient address" });
+    return;
+  }
+
+  const client = await db.connect();
+  let committed = false;
+  let redemptionId: string;
+  let tokenWei: bigint;
+  let recipientOut: string;
+
+  try {
+    await client.query("BEGIN");
+    const userResult = await client.query<{ id: string }>(
+      `select id from users where privy_user_id = $1 limit 1 for update`,
+      [auth.privyUserId]
+    );
+    if (!userResult.rowCount) {
+      await client.query("ROLLBACK");
+      res.status(400).json({ error: "User not synced; complete /auth/sync first" });
+      return;
+    }
+    const userId = userResult.rows[0].id;
+
+    if (!recipient) {
+      const w = await client.query<{ address: string }>(
+        `select address from wallets where user_id = $1 and is_primary = true limit 1`,
+        [userId]
+      );
+      if (!w.rowCount) {
+        await client.query("ROLLBACK");
+        res.status(400).json({ error: "No primary wallet — pass recipientAddress or sync wallet in /auth/sync" });
+        return;
+      }
+      recipient = normalizeEvmAddress(w.rows[0].address);
+    }
+    recipientOut = recipient;
+
+    const balance = await getAvailablePoints(client, userId);
+    if (balance < pointsAmount) {
+      await client.query("ROLLBACK");
+      res.status(400).json({ error: "Insufficient points", balance });
+      return;
+    }
+
+    tokenWei = pointsToTokenWei(pointsAmount, config.pointsPerHeroToken);
+    if (tokenWei <= 0n) {
+      await client.query("ROLLBACK");
+      res.status(400).json({ error: "Amount too small after conversion" });
+      return;
+    }
+
+    const ins = await client.query<{ id: string }>(
+      `
+      insert into point_redemptions (user_id, points_spent, token_amount_wei, recipient_address, chain_id, status)
+      values ($1, $2, $3, $4, $5, 'processing')
+      returning id
+      `,
+      [userId, pointsAmount, tokenWei.toString(), recipientOut.toLowerCase(), config.heroChainId]
+    );
+    redemptionId = ins.rows[0].id;
+    await client.query("COMMIT");
+    committed = true;
+  } catch (error) {
+    if (!committed) {
+      await client.query("ROLLBACK").catch(() => {});
+    }
+    console.error("Failed /me/redeem (db):", error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "Redeem failed" });
+    }
+    return;
+  } finally {
+    client.release();
+  }
+
+  try {
+    const { txHash } = await mintHeroTokens(recipientOut!, tokenWei!);
+    await db.query(
+      `update point_redemptions set status = 'completed', tx_hash = $2, updated_at = now() where id = $1`,
+      [redemptionId!, txHash]
+    );
+    res.json({
+      ok: true,
+      txHash,
+      pointsSpent: pointsAmount,
+      tokenWei: tokenWei!.toString(),
+      recipient: recipientOut!,
+      chainId: config.heroChainId,
+    });
+  } catch (mintErr) {
+    const msg = mintErr instanceof Error ? mintErr.message : String(mintErr);
+    await db.query(
+      `update point_redemptions set status = 'failed', failure_reason = $2, updated_at = now() where id = $1`,
+      [redemptionId!, msg.slice(0, 2000)]
+    );
+    console.error("Mint failed:", mintErr);
+    res.status(500).json({ error: "On-chain mint failed", details: msg });
   }
 });
 

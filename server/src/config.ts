@@ -16,6 +16,17 @@ const envSchema = z.object({
   OG_0G_INDEXER_RPC: z.string().url().default("https://indexer-storage-testnet-turbo.0g.ai"),
   /** Hex private key for the wallet that pays gas for storage uploads (fund on testnet faucet) */
   OG_0G_STORAGE_PRIVATE_KEY: z.string().optional(),
+
+  /** HERO ERC-20 (points redeem) — deploy `HeroToken.sol`, grant MINTER_ROLE to this key */
+  HERO_TOKEN_ADDRESS: z.string().optional(),
+  HERO_TOKEN_MINTER_PRIVATE_KEY: z.string().optional(),
+  /** RPC for token mint txs (default: same as 0G EVM) */
+  HERO_TOKEN_CHAIN_RPC: z.string().url().optional(),
+  /** How many in-app points = 1 full HERO (18 decimals), e.g. 100 */
+  POINTS_PER_HERO_TOKEN: z.coerce.number().int().positive().default(100),
+  /** Minimum points per single redeem */
+  MIN_REDEEM_POINTS: z.coerce.number().int().positive().default(100),
+  HERO_CHAIN_ID: z.coerce.number().int().default(16602),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -35,4 +46,10 @@ export const config = {
   og0gEvmRpc: parsed.data.OG_0G_EVM_RPC,
   og0gIndexerRpc: parsed.data.OG_0G_INDEXER_RPC,
   og0gStoragePrivateKey: parsed.data.OG_0G_STORAGE_PRIVATE_KEY,
+  heroTokenAddress: parsed.data.HERO_TOKEN_ADDRESS,
+  heroTokenMinterPrivateKey: parsed.data.HERO_TOKEN_MINTER_PRIVATE_KEY,
+  heroTokenChainRpc: parsed.data.HERO_TOKEN_CHAIN_RPC ?? parsed.data.OG_0G_EVM_RPC,
+  pointsPerHeroToken: parsed.data.POINTS_PER_HERO_TOKEN,
+  minRedeemPoints: parsed.data.MIN_REDEEM_POINTS,
+  heroChainId: parsed.data.HERO_CHAIN_ID,
 };

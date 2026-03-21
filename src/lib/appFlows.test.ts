@@ -20,6 +20,7 @@ const APP_TSX_ROUTE_SNIPPETS = [
   'path="/app/overmind"',
   'path="/app/admin/roles"',
   'path="contracts"',
+  'path="redeem"',
 ] as const;
 
 describe("App routing (flow coverage)", () => {

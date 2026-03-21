@@ -104,6 +104,43 @@ export interface StorageUploadResponse {
 }
 
 /** Upload a file to 0G via the API (multipart field name: `file`). */
+export interface MePointsResponse {
+  balance: number;
+  pointsPerToken: number;
+  minRedeemPoints: number;
+  tokenSymbol: string;
+  redeemEnabled: boolean;
+  chainId: number;
+  tokenAddress?: string | null;
+}
+
+export async function getMePoints(accessToken: string): Promise<MePointsResponse> {
+  return apiRequest<MePointsResponse>("/me/points", {
+    method: "GET",
+    accessToken,
+  });
+}
+
+export interface RedeemResponse {
+  ok: boolean;
+  txHash: string;
+  pointsSpent: number;
+  tokenWei: string;
+  recipient: string;
+  chainId: number;
+}
+
+export async function redeemPoints(
+  accessToken: string,
+  payload: { pointsAmount: number; recipientAddress?: string }
+): Promise<RedeemResponse> {
+  return apiRequest<RedeemResponse>("/me/redeem", {
+    method: "POST",
+    accessToken,
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function uploadStorageFile(accessToken: string, file: File): Promise<StorageUploadResponse> {
   const form = new FormData();
   form.append("file", file);

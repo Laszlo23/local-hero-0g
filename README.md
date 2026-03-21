@@ -46,6 +46,10 @@ Apply the schema: `server/sql/001_init.sql` on your Postgres database.
 | `VITE_0G_NETWORK` | Optional: `testnet` or `mainnet` for default 0G chain |
 | `VITE_0G_RPC_TESTNET` / `VITE_0G_RPC_MAINNET` | Optional RPC overrides |
 
+### Points → HERO token (optional)
+
+After deploying `HeroToken` and setting `HERO_TOKEN_*` env vars (see `server/.env.example`), users can redeem server-tracked points at **`GET /me/points`** and **`POST /me/redeem`**. UI: **`/app/redeem`**. Details: **`docs/POINTS_AND_TOKENS.md`**.
+
 ### 0G storage (avatars)
 
 The API can upload files to 0G storage and serve them at `GET /storage/files/:rootHash` (public, suitable for `avatar_url`).

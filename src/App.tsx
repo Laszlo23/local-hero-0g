@@ -27,6 +27,7 @@ const ARQuest = lazy(() => import("./pages/ARQuest"));
 const Schools = lazy(() => import("./pages/Schools"));
 const Leaderboard = lazy(() => import("./pages/Leaderboard"));
 const Profile = lazy(() => import("./pages/Profile"));
+const Redeem = lazy(() => import("./pages/Redeem"));
 const CreateQR = lazy(() => import("./pages/CreateQR"));
 const MintNFT = lazy(() => import("./pages/MintNFT"));
 const Contracts = lazy(() => import("./pages/Contracts"));
@@ -100,6 +101,7 @@ const App = () => (
                   <Route path="schools" element={<Schools />} />
                   <Route path="leaderboard" element={<Leaderboard />} />
                   <Route path="profile" element={<Profile />} />
+                  <Route path="redeem" element={<Redeem />} />
                   <Route path="create-qr" element={<CreateQR />} />
                   <Route path="mint" element={<MintNFT />} />
                   <Route path="contracts" element={<Contracts />} />
