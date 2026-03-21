@@ -86,4 +86,5 @@ forge test
 
 - **Operations guide:** [`docs/AGENTS_AND_OPERATIONS.md`](docs/AGENTS_AND_OPERATIONS.md) — six Overmind agents, 777 program, Supabase admin/moderator, on-chain `AGENT_ROLE`.
 - **Release checklist:** [`docs/AUDIT_CHECKLIST.md`](docs/AUDIT_CHECKLIST.md) — auth, storage, contracts, admin.
+- **Economy direction:** [`docs/POINTS_AND_TOKENS.md`](docs/POINTS_AND_TOKENS.md) — HERO points first; planned **points → token** exchange layer (not implemented yet).
 
