@@ -7,7 +7,7 @@
 
 ## What ships in this repo
 
-1. **`contracts/src/HeroToken.sol`** — ERC-20 `HERO` (18 decimals), `mint` restricted to `MINTER_ROLE`.
+1. **`contracts/src/HeroToken.sol`** — ERC-20 `HERO` (18 decimals), **max supply 77,777,777** (hard-capped on-chain), `mint` restricted to `MINTER_ROLE`. See **`docs/HERO_TOKEN_TECHNICAL_PAPER.md`** (also **[HERO Token paper](/hero-token)** in the app footer).
 2. **`server/sql/002_point_redemptions.sql`** — ledger of spends + tx hashes.
 3. **API**
    - `GET /me/points` — spendable balance, rate, min redeem, whether redeem is configured.

@@ -1608,6 +1608,7 @@ const Landing = () => {
                     { label: "Investors", action: () => navigate("/investors") },
                     { label: "Pitch Deck", action: () => navigate("/pitch") },
                     { label: "HeroPaper", action: () => navigate("/heropaper") },
+                    { label: "HERO Token (technical)", action: () => navigate("/hero-token") },
                     { label: "Roadmap & FAQ", action: () => navigate("/roadmap") },
                   ].map((link) => (
                     <li key={link.label}>
@@ -1625,6 +1626,11 @@ const Landing = () => {
                   <Heart size={14} className="text-hero-orange" /> Get Involved
                 </h4>
                 <ul className="space-y-2.5">
+                  <li>
+                    <button onClick={() => navigate("/report-spot")} className="text-sm text-hero-green-glow hover:text-primary transition-colors font-medium">
+                      Report a spot 🌿
+                    </button>
+                  </li>
                   <li>
                     <button onClick={() => navigate("/fund")} className="text-sm text-hero-orange hover:text-hero-yellow transition-colors font-medium">
                       Fund Us 💛
@@ -1662,7 +1668,13 @@ const Landing = () => {
             {/* Bottom Strip */}
             <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-muted-foreground">© 2026 Local Hero · Fair by design</p>
-              <div className="flex items-center gap-5">
+              <div className="flex flex-wrap items-center justify-center gap-5">
+                <Link to="/hero-token" className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors">
+                  HERO Token paper
+                </Link>
+                <Link to="/report-spot" className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors">
+                  Report a spot
+                </Link>
                 <Link to="/privacy" className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">Privacy</Link>
                 <Link to="/terms" className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">Terms</Link>
                 <a href="mailto:hello@localhero.space" className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">Contact</a>

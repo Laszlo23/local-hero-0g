@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getMePoints, redeemPoints, HttpError } from "@/lib/api";
 import { toast } from "@/hooks/use-toast";
 import { ogGalileoTestnet, ogMainnet } from "@/lib/zeroGChains";
+import { formatEther } from "viem";
 
 const Redeem = () => {
   const navigate = useNavigate();
@@ -25,6 +26,8 @@ const Redeem = () => {
   const [pointsInput, setPointsInput] = useState("");
   const [recipientOverride, setRecipientOverride] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [tokenMaxSupplyWei, setTokenMaxSupplyWei] = useState<string | null>(null);
+  const [tokenRemainingMintableWei, setTokenRemainingMintableWei] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const token = await getAccessToken();
@@ -40,6 +43,8 @@ const Redeem = () => {
       setRedeemEnabled(data.redeemEnabled);
       setTokenAddress(data.tokenAddress ?? null);
       setChainId(data.chainId);
+      setTokenMaxSupplyWei(data.tokenMaxSupplyWei ?? null);
+      setTokenRemainingMintableWei(data.tokenRemainingMintableWei ?? null);
     } catch (e) {
       console.warn(e);
       toast({ title: "Could not load points", variant: "destructive" });
@@ -143,6 +148,13 @@ const Redeem = () => {
               Rate: <strong>{pointsPerToken}</strong> points = 1 {redeemEnabled ? "HERO" : "HERO (pending config)"} ·
               Min: <strong>{minRedeem}</strong> · Chain ID <strong>{chainId}</strong>
             </p>
+            {redeemEnabled && tokenMaxSupplyWei && tokenRemainingMintableWei != null && (
+              <p className="text-[11px] text-muted-foreground pt-1 border-t border-border/50 mt-2">
+                Token cap: <strong className="text-foreground">{formatEther(BigInt(tokenMaxSupplyWei))}</strong> HERO
+                max · Remaining mintable:{" "}
+                <strong className="text-foreground">{formatEther(BigInt(tokenRemainingMintableWei))}</strong> HERO
+              </p>
+            )}
           </div>
 
           {!redeemEnabled ? (

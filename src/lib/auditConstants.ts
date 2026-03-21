@@ -6,6 +6,7 @@
 /** Express routes mounted at the API root (no trailing slash). */
 export const EXPECTED_AUTH_API_ROUTES = [
   "GET /health",
+  "POST /public/community-signal",
   "POST /auth/sync",
   "GET /me/points",
   "POST /me/redeem",
@@ -32,3 +33,6 @@ export const EXPECTED_IDENTITY_CONTRACT_FUNCTIONS = [
   "pause",
   "unpause",
 ] as const;
+
+/** HeroToken.sol — mint is capped at MAX_SUPPLY; governance via AccessControl. */
+export const EXPECTED_HERO_TOKEN_FUNCTIONS = ["mint", "remainingMintable"] as const;

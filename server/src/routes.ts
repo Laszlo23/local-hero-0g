@@ -19,6 +19,7 @@ import {
 } from "./storage0g.js";
 import { getAvailablePoints } from "./points.js";
 import {
+  getHeroTokenSupplySnapshot,
   isRedeemConfigured,
   mintHeroTokens,
   normalizeEvmAddress,
@@ -49,10 +50,85 @@ const redeemPointsSchema = z.object({
   recipientAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
 });
 
+const communitySignalCategories = [
+  "litter_waste",
+  "vandalism_damage",
+  "overgrown",
+  "safety_concern",
+  "other",
+] as const;
+
+const communitySignalSchema = z.object({
+  category: z.enum(communitySignalCategories),
+  placeLabel: z.string().trim().min(2).max(160),
+  description: z.string().trim().min(15).max(4000),
+  locationHint: z.string().trim().max(400).optional().nullable(),
+  contactEmail: z.string().trim().email().max(200).optional().nullable(),
+});
+
+/** Simple per-IP rate limit for anonymous public submissions */
+const communitySignalBuckets = new Map<string, { count: number; windowStart: number }>();
+const COMMUNITY_SIGNAL_WINDOW_MS = 60 * 60 * 1000;
+const COMMUNITY_SIGNAL_MAX_PER_WINDOW = 15;
+
+function allowCommunitySignalSubmission(ip: string): boolean {
+  const now = Date.now();
+  let b = communitySignalBuckets.get(ip);
+  if (!b || now - b.windowStart > COMMUNITY_SIGNAL_WINDOW_MS) {
+    communitySignalBuckets.set(ip, { count: 1, windowStart: now });
+    return true;
+  }
+  if (b.count >= COMMUNITY_SIGNAL_MAX_PER_WINDOW) return false;
+  b.count += 1;
+  return true;
+}
+
 export const router = Router();
 
 router.get("/health", (_req, res) => {
   res.json({ ok: true });
+});
+
+/**
+ * Public heads-up for parks, litter, etc. No login — organizers query Postgres `community_signals`.
+ */
+router.post("/public/community-signal", async (req, res) => {
+  const parsed = communitySignalSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
+    return;
+  }
+
+  const ip = (typeof req.ip === "string" && req.ip) || req.socket.remoteAddress || "unknown";
+  if (!allowCommunitySignalSubmission(ip)) {
+    res.status(429).json({ error: "Too many submissions — try again in an hour" });
+    return;
+  }
+
+  const { category, placeLabel, description, locationHint, contactEmail } = parsed.data;
+  const client = await db.connect();
+  try {
+    const r = await client.query<{ id: string }>(
+      `
+      insert into community_signals (category, place_label, description, location_hint, contact_email)
+      values ($1, $2, $3, $4, $5)
+      returning id
+      `,
+      [
+        category,
+        placeLabel,
+        description,
+        locationHint?.trim() || null,
+        contactEmail?.trim() || null,
+      ]
+    );
+    res.status(201).json({ ok: true, id: r.rows[0].id });
+  } catch (error) {
+    console.error("Failed /public/community-signal:", error);
+    res.status(500).json({ error: "Could not save report" });
+  } finally {
+    client.release();
+  }
 });
 
 router.post("/auth/sync", requirePrivyAuth, async (req: AuthenticatedRequest, res) => {
@@ -159,9 +235,18 @@ router.get("/me/points", requirePrivyAuth, async (req: AuthenticatedRequest, res
 
   const client = await db.connect();
   try {
-    const userResult = await client.query<{ id: string }>(`select id from users where privy_user_id = $1 limit 1`, [
-      auth.privyUserId,
+    const [userResult, supplySnap] = await Promise.all([
+      client.query<{ id: string }>(`select id from users where privy_user_id = $1 limit 1`, [auth.privyUserId]),
+      getHeroTokenSupplySnapshot(),
     ]);
+    const supplyFields =
+      supplySnap != null
+        ? {
+            tokenTotalSupplyWei: supplySnap.totalSupplyWei,
+            tokenRemainingMintableWei: supplySnap.remainingMintableWei,
+            tokenMaxSupplyWei: supplySnap.maxSupplyWei,
+          }
+        : {};
     if (!userResult.rowCount) {
       res.json({
         balance: 0,
@@ -170,6 +255,7 @@ router.get("/me/points", requirePrivyAuth, async (req: AuthenticatedRequest, res
         tokenSymbol: "HERO",
         redeemEnabled: isRedeemConfigured(),
         chainId: config.heroChainId,
+        ...supplyFields,
       });
       return;
     }
@@ -182,6 +268,7 @@ router.get("/me/points", requirePrivyAuth, async (req: AuthenticatedRequest, res
       redeemEnabled: isRedeemConfigured(),
       chainId: config.heroChainId,
       tokenAddress: config.heroTokenAddress ?? null,
+      ...supplyFields,
     });
   } catch (error) {
     console.error("Failed /me/points:", error);
@@ -212,6 +299,21 @@ router.post("/me/redeem", requirePrivyAuth, async (req: AuthenticatedRequest, re
   const { pointsAmount, recipientAddress: bodyRecipient } = parsed.data;
   if (pointsAmount < config.minRedeemPoints) {
     res.status(400).json({ error: `Minimum redeem is ${config.minRedeemPoints} points` });
+    return;
+  }
+
+  const tokenWeiPreview = pointsToTokenWei(pointsAmount, config.pointsPerHeroToken);
+  if (tokenWeiPreview <= 0n) {
+    res.status(400).json({ error: "Amount too small after conversion" });
+    return;
+  }
+  const supplySnap = await getHeroTokenSupplySnapshot();
+  if (supplySnap && BigInt(supplySnap.remainingMintableWei) < tokenWeiPreview) {
+    res.status(503).json({
+      error: "HERO mint cap reached — no remaining mintable supply",
+      remainingMintableWei: supplySnap.remainingMintableWei,
+      maxSupplyWei: supplySnap.maxSupplyWei,
+    });
     return;
   }
 
@@ -263,13 +365,7 @@ router.post("/me/redeem", requirePrivyAuth, async (req: AuthenticatedRequest, re
       return;
     }
 
-    tokenWei = pointsToTokenWei(pointsAmount, config.pointsPerHeroToken);
-    if (tokenWei <= 0n) {
-      await client.query("ROLLBACK");
-      res.status(400).json({ error: "Amount too small after conversion" });
-      return;
-    }
-
+    tokenWei = tokenWeiPreview;
     const ins = await client.query<{ id: string }>(
       `
       insert into point_redemptions (user_id, points_spent, token_amount_wei, recipient_address, chain_id, status)

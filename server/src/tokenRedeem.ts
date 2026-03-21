@@ -7,6 +7,12 @@ export function normalizeEvmAddress(addr: string): string {
 
 const ERC20_MINT_ABI = ["function mint(address to, uint256 amount) external"];
 
+const HERO_TOKEN_READ_ABI = [
+  "function totalSupply() view returns (uint256)",
+  "function remainingMintable() view returns (uint256)",
+  "function MAX_SUPPLY() view returns (uint256)",
+];
+
 export function isRedeemConfigured(): boolean {
   return Boolean(
     config.heroTokenAddress &&
@@ -36,4 +42,30 @@ export async function mintHeroTokens(recipient: string, amountWei: bigint): Prom
 export function pointsToTokenWei(pointsAmount: number, pointsPerToken: number): bigint {
   if (pointsPerToken <= 0) throw new Error("Invalid pointsPerToken");
   return (BigInt(pointsAmount) * 10n ** 18n) / BigInt(pointsPerToken);
+}
+
+/** On-chain cap snapshot for UI / redeem guardrails (null if token not configured or RPC fails). */
+export async function getHeroTokenSupplySnapshot(): Promise<{
+  totalSupplyWei: string;
+  remainingMintableWei: string;
+  maxSupplyWei: string;
+} | null> {
+  if (!config.heroTokenAddress) return null;
+  try {
+    const provider = new ethers.JsonRpcProvider(config.heroTokenChainRpc);
+    const c = new ethers.Contract(config.heroTokenAddress, HERO_TOKEN_READ_ABI, provider);
+    const [total, remaining, max] = await Promise.all([
+      c.totalSupply() as Promise<bigint>,
+      c.remainingMintable() as Promise<bigint>,
+      c.MAX_SUPPLY() as Promise<bigint>,
+    ]);
+    return {
+      totalSupplyWei: total.toString(),
+      remainingMintableWei: remaining.toString(),
+      maxSupplyWei: max.toString(),
+    };
+  } catch (e) {
+    console.warn("Hero token supply read failed:", e);
+    return null;
+  }
 }

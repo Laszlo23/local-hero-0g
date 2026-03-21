@@ -7,6 +7,7 @@ import {LocalHeroSoulboundIdentity} from "../src/LocalHeroSoulboundIdentity.sol"
 import {HeroToken} from "../src/HeroToken.sol";
 
 /// @notice Deploy badges, soulbound identity, and HERO ERC-20. The broadcast wallet is `admin`.
+/// For production HeroToken, use a Gnosis Safe as `admin` (set `--sender` / broadcast from Safe or transfer `DEFAULT_ADMIN_ROLE` after deploy).
 contract Deploy is Script {
     function run() external {
         vm.startBroadcast();

@@ -112,6 +112,10 @@ export interface MePointsResponse {
   redeemEnabled: boolean;
   chainId: number;
   tokenAddress?: string | null;
+  /** On-chain totals when RPC + HERO_TOKEN_ADDRESS configured */
+  tokenTotalSupplyWei?: string;
+  tokenRemainingMintableWei?: string;
+  tokenMaxSupplyWei?: string;
 }
 
 export async function getMePoints(accessToken: string): Promise<MePointsResponse> {
@@ -139,6 +143,54 @@ export async function redeemPoints(
     accessToken,
     body: JSON.stringify(payload),
   });
+}
+
+export type CommunitySignalCategory =
+  | "litter_waste"
+  | "vandalism_damage"
+  | "overgrown"
+  | "safety_concern"
+  | "other";
+
+export interface SubmitCommunitySignalPayload {
+  category: CommunitySignalCategory;
+  placeLabel: string;
+  description: string;
+  locationHint?: string | null;
+  contactEmail?: string | null;
+}
+
+export interface SubmitCommunitySignalResponse {
+  ok: boolean;
+  id: string;
+}
+
+/** No auth — public heads-up for organizers (rate-limited server-side). */
+export async function submitCommunitySignal(
+  payload: SubmitCommunitySignalPayload
+): Promise<SubmitCommunitySignalResponse> {
+  const response = await fetch(toApiUrl("/public/community-signal"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      category: payload.category,
+      placeLabel: payload.placeLabel,
+      description: payload.description,
+      locationHint: payload.locationHint ?? undefined,
+      contactEmail: payload.contactEmail ?? undefined,
+    }),
+  });
+  if (!response.ok) {
+    let msg = `Request failed (${response.status})`;
+    try {
+      const j = (await response.json()) as { error?: string };
+      if (j.error) msg = j.error;
+    } catch {
+      /* ignore */
+    }
+    throw new HttpError(msg, response.status);
+  }
+  return (await response.json()) as SubmitCommunitySignalResponse;
 }
 
 export async function uploadStorageFile(accessToken: string, file: File): Promise<StorageUploadResponse> {

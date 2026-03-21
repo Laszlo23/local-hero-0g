@@ -16,6 +16,8 @@ import Landing from "./pages/Landing";
 const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const HeroPaper = lazy(() => import("./pages/HeroPaper"));
+const HeroTokenPaper = lazy(() => import("./pages/HeroTokenPaper"));
+const ReportSpot = lazy(() => import("./pages/ReportSpot"));
 const WalletOnboarding = lazy(() => import("./pages/WalletOnboarding"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Install = lazy(() => import("./pages/Install"));
@@ -85,6 +87,8 @@ const App = () => (
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/heropaper" element={<HeroPaper />} />
+                <Route path="/hero-token" element={<HeroTokenPaper />} />
+                <Route path="/report-spot" element={<ReportSpot />} />
                 
                 <Route path="/wallet-onboarding" element={<WalletOnboarding />} />
                 <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />

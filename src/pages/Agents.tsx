@@ -1,6 +1,7 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Coins, Crown, DollarSign, Gift, Megaphone, Shield, Sparkles, Star, Store, Target, TrendingUp, Users, Zap } from "lucide-react";
+import { ArrowRight, Coins, Crown, DollarSign, Gift, Leaf, Megaphone, Shield, Sparkles, Star, Store, Target, TrendingUp, Users, Zap } from "lucide-react";
 import { StaggerContainer, FadeUpItem, BreathingGlow, FloatingParticle } from "@/components/Animations";
 
 const AGENT_TIERS = [
@@ -63,6 +64,26 @@ const Agents = () => {
             <Sparkles size={10} /> Coming Soon
           </motion.span>
         </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.12 }}
+        className="rounded-2xl border border-hero-green-glow/25 bg-hero-green-glow/5 p-4"
+      >
+        <p className="flex flex-wrap items-center gap-x-1 text-xs leading-relaxed text-muted-foreground">
+          <Leaf size={14} className="inline shrink-0 text-hero-green-glow" />
+          <span>
+            Anyone can flag a park or street for cleanup — no game account required. Share{" "}
+            <Link to="/report-spot" className="font-semibold text-primary hover:underline">
+              Report a spot
+            </Link>
+            . Triage reports in Postgres{" "}
+            <code className="rounded bg-background/80 px-1 py-0.5 text-[10px]">community_signals</code> — see{" "}
+            <code className="text-[10px]">docs/COMMUNITY_SIGNALS.md</code>.
+          </span>
+        </p>
       </motion.div>
 
       {/* Tabs */}

@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import {
   EXPECTED_AUTH_API_ROUTES,
   EXPECTED_BADGE_CONTRACT_FUNCTIONS,
+  EXPECTED_HERO_TOKEN_FUNCTIONS,
   EXPECTED_IDENTITY_CONTRACT_FUNCTIONS,
 } from "./auditConstants";
 
@@ -14,6 +15,7 @@ const repoRoot = join(__dirname, "../..");
 /** Substrings that must appear in `server/src/routes.ts` for each logical route. */
 const SERVER_ROUTE_SNIPPETS: Record<(typeof EXPECTED_AUTH_API_ROUTES)[number], string> = {
   "GET /health": `router.get("/health"`,
+  "POST /public/community-signal": `router.post("/public/community-signal"`,
   "POST /auth/sync": `router.post("/auth/sync"`,
   "GET /me/points": `router.get("/me/points"`,
   "POST /me/redeem": `router.post("/me/redeem"`,
@@ -46,6 +48,14 @@ describe("Contract surface audit (Solidity)", () => {
     const path = join(repoRoot, "contracts/src/LocalHeroSoulboundIdentity.sol");
     const src = readFileSync(path, "utf8");
     for (const fn of EXPECTED_IDENTITY_CONTRACT_FUNCTIONS) {
+      expect(src, fn).toMatch(new RegExp(`function ${fn}\\s*\\(`));
+    }
+  });
+
+  it("HeroToken exposes expected external functions", () => {
+    const path = join(repoRoot, "contracts/src/HeroToken.sol");
+    const src = readFileSync(path, "utf8");
+    for (const fn of EXPECTED_HERO_TOKEN_FUNCTIONS) {
       expect(src, fn).toMatch(new RegExp(`function ${fn}\\s*\\(`));
     }
   });

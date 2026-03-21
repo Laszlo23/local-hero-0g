@@ -679,7 +679,17 @@ const HeroPaper = () => {
             <span className="font-display font-bold text-sm text-foreground">Local<span className="text-gradient-hero">Hero</span></span>
             <span className="text-xs text-muted-foreground ml-2">HeroPaper v1.0</span>
           </div>
-          <p className="text-xs text-muted-foreground">© 2026 Local Hero · Built on 0G Chain · Fair by design</p>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-muted-foreground">
+            <button
+              type="button"
+              onClick={() => navigate("/hero-token")}
+              className="hover:text-primary transition-colors"
+            >
+              HERO Token paper
+            </button>
+            <span aria-hidden>·</span>
+            <span>© 2026 Local Hero · Built on 0G Chain · Fair by design</span>
+          </div>
         </div>
       </footer>
     </div>
