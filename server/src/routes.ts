@@ -82,7 +82,7 @@ const COMMUNITY_SIGNAL_MAX_PER_WINDOW = 15;
 
 function allowCommunitySignalSubmission(ip: string): boolean {
   const now = Date.now();
-  let b = communitySignalBuckets.get(ip);
+  const b = communitySignalBuckets.get(ip);
   if (!b || now - b.windowStart > COMMUNITY_SIGNAL_WINDOW_MS) {
     communitySignalBuckets.set(ip, { count: 1, windowStart: now });
     return true;

@@ -91,7 +91,7 @@ const ARQuestPlayground = () => {
     }
 
     // Parse HERO quest QR codes
-    let quest = parseQrCode(text);
+    const quest = parseQrCode(text);
     if (quest) {
       setScannedQuest(quest);
       setQrCollected((prev) => [...prev, text]);

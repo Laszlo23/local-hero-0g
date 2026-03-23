@@ -152,11 +152,74 @@ Required repository secrets:
 - Pull requests targeting `main` / `master`
 - Manual trigger (`workflow_dispatch`)
 
+### Pull request path filter
+
+PR runs are limited to relevant files only:
+
+- mobile/native config (`android/**`, `ios/**`, `capacitor.config.ts`)
+- CI config (`.github/workflows/mobile-ci.yml`)
+- dependencies (`package.json`, `package-lock.json`)
+- app/server/docs changes (`src/**`, `server/**`, `docs/**`)
+
+This avoids running the mobile pipeline for unrelated repository changes.
+
+### Manual lane toggles
+
+`workflow_dispatch` now supports explicit lane switches:
+
+- `run_android_signed_release` (`true`/`false`)
+- `run_android_play_internal` (`true`/`false`)
+- `run_ios_testflight` (`true`/`false`)
+
+Defaults are all `true`.
+
+### Play rollout controls
+
+`workflow_dispatch` also supports Play release controls:
+
+- `play_release_status`: `draft` | `inProgress` | `completed` (default: `draft`)
+- `play_user_fraction`: required only for `inProgress` (must be decimal between `0` and `1`, e.g. `0.25`)
+- `play_completed_confirm`: required only for `completed`; must be exactly `APPROVE_PLAY_COMPLETED`
+
+Validation rules in CI:
+
+- Invalid `play_release_status` fails the job.
+- `inProgress` without `play_user_fraction` fails the job.
+- `play_user_fraction` must be `> 0` and `< 1`.
+- `completed` requires explicit confirmation token.
+
+Important:
+
+- `android-play-internal` requires `run_android_signed_release=true` because it consumes signed AAB artifacts from that job.
+- `android-play-internal` uses GitHub Environments:
+  - `mobile-release` for `draft` and `inProgress`
+  - `production-release` for `completed`
+- `ios-testflight` can also be attached to a protected environment (recommended in repo settings).
+
+Examples:
+
+- Safe default: `play_release_status=draft`
+- Full publish: `play_release_status=completed`, `play_completed_confirm=APPROVE_PLAY_COMPLETED`
+- 10% rollout: `play_release_status=inProgress`, `play_user_fraction=0.10`
+
+### Environment protection setup
+
+Configure these repository environments in GitHub:
+
+- `mobile-release`
+- `production-release`
+
+Recommended protection rules:
+
+- Required reviewers for `production-release` (and for iOS if you attach an environment)
+- Optional wait timer for production environment
+- Restrict deployment branches to release/main as needed
+
 ## Next recommended upgrades
 
-1. Promote Play uploads from `draft` to controlled rollout automation.
-2. Add branch/path filters to reduce unnecessary runs.
-3. Add semver/tag-driven release versioning for Play `versionCode`.
-4. Add environment-specific iOS bundle ids / profiles (staging vs prod).
-5. Add provenance/SBOM artifact generation for release compliance.
+1. Add environment-specific iOS bundle ids / profiles (staging vs prod).
+2. Add provenance/SBOM artifact generation for release compliance.
+3. Add release notes/changelog injection into store submission metadata.
+4. Add post-deploy smoke checks and rollback playbook docs.
+5. Add post-release monitoring dashboards and alerting hooks.
 
