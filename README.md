@@ -25,6 +25,7 @@ Web app and backend for **Local Hero** — community quests, profiles, and on-ch
 | **HeroPaper** | `/heropaper` | Long-form narrative / vision |
 | **HERO Token paper** | `/hero-token` | Tokenomics, max supply, multisig & liquidity playbook (from `docs/HERO_TOKEN_TECHNICAL_PAPER.md`) |
 | **Report a spot** | `/report-spot` | Civic heads-up (litter, parks, upkeep) — no account; `POST /public/community-signal` |
+| **Build in Public** | `/build-in-public` | Daily ship log; content from `src/content/build-in-public.md` (see `docs/BUILD_IN_PUBLIC.md`) |
 | **Install** | `/install` | PWA / app install hints |
 | **Investors** | `/investors` | Investor-facing content |
 | **Pitch deck** | `/pitch` | Deck view |
@@ -236,6 +237,7 @@ cd contracts && forge build && forge test
 | [`docs/MOBILE_WEEK3_DEEPLINK_AUTH_QA.md`](docs/MOBILE_WEEK3_DEEPLINK_AUTH_QA.md) | Deep-link/auth implementation notes and QA checklist for mobile week 3 |
 | [`docs/MOBILE_WEEK3_QA_MATRIX.md`](docs/MOBILE_WEEK3_QA_MATRIX.md) | Device/network test matrix for week 3 mobile verification |
 | [`docs/MOBILE_CI_PIPELINE.md`](docs/MOBILE_CI_PIPELINE.md) | GitHub Actions mobile CI scaffold (web sanity + Android flavors + signed Android + Play internal + iOS TestFlight lane) |
+| [`docs/BUILD_IN_PUBLIC.md`](docs/BUILD_IN_PUBLIC.md) | How to edit the Build in Public changelog (`src/content/build-in-public.md`) |
 | [`contracts/README.md`](contracts/README.md) | Solidity contracts & deploy |
 
 ---
