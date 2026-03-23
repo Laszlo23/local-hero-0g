@@ -1609,6 +1609,7 @@ const Landing = () => {
                     { label: "Pitch Deck", action: () => navigate("/pitch") },
                     { label: "HeroPaper", action: () => navigate("/heropaper") },
                     { label: "HERO Token (technical)", action: () => navigate("/hero-token") },
+                    { label: "Build in Public", action: () => navigate("/build-in-public") },
                     { label: "Roadmap & FAQ", action: () => navigate("/roadmap") },
                   ].map((link) => (
                     <li key={link.label}>
@@ -1674,6 +1675,9 @@ const Landing = () => {
                 </Link>
                 <Link to="/report-spot" className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors">
                   Report a spot
+                </Link>
+                <Link to="/build-in-public" className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors">
+                  Build in Public
                 </Link>
                 <Link to="/privacy" className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">Privacy</Link>
                 <Link to="/terms" className="text-[10px] text-muted-foreground/60 hover:text-muted-foreground transition-colors">Terms</Link>

@@ -63,6 +63,7 @@ export function SiteMarketingFooter() {
                 { label: "Pitch Deck", to: "/pitch" },
                 { label: "HeroPaper", to: "/heropaper" },
                 { label: "HERO Token", to: "/hero-token" },
+                { label: "Build in Public", to: "/build-in-public" },
                 { label: "Roadmap & FAQ", to: "/roadmap" },
               ].map((item) => (
                 <li key={item.to}>
@@ -129,6 +130,9 @@ export function SiteMarketingFooter() {
             </Link>
             <Link to="/report-spot" className="text-[10px] text-muted-foreground/60 transition-colors hover:text-primary">
               Report a spot
+            </Link>
+            <Link to="/build-in-public" className="text-[10px] text-muted-foreground/60 transition-colors hover:text-primary">
+              Build in Public
             </Link>
             <Link to="/privacy" className="text-[10px] text-muted-foreground/60 transition-colors hover:text-muted-foreground">
               Privacy

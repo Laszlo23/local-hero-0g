@@ -18,6 +18,7 @@ const Auth = lazy(() => import("./pages/Auth"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const HeroPaper = lazy(() => import("./pages/HeroPaper"));
 const HeroTokenPaper = lazy(() => import("./pages/HeroTokenPaper"));
+const BuildInPublic = lazy(() => import("./pages/BuildInPublic"));
 const ReportSpot = lazy(() => import("./pages/ReportSpot"));
 const CreateEducationalQuest = lazy(() => import("./pages/CreateEducationalQuest"));
 const DeepLinkDebug = lazy(() => import("./pages/DeepLinkDebug"));
@@ -93,6 +94,7 @@ const App = () => (
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/heropaper" element={<HeroPaper />} />
                 <Route path="/hero-token" element={<HeroTokenPaper />} />
+                <Route path="/build-in-public" element={<BuildInPublic />} />
                 <Route path="/report-spot" element={<ReportSpot />} />
                 
                 <Route path="/wallet-onboarding" element={<WalletOnboarding />} />
