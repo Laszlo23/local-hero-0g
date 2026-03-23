@@ -1607,6 +1607,7 @@ const Landing = () => {
                     { label: "For Business", action: () => navigate("/business") },
                     { label: "Investors", action: () => navigate("/investors") },
                     { label: "Pitch Deck", action: () => navigate("/pitch") },
+                    { label: "The idea", action: () => navigate("/the-idea") },
                     { label: "HeroPaper", action: () => navigate("/heropaper") },
                     { label: "HERO Token (technical)", action: () => navigate("/hero-token") },
                     { label: "Build in Public", action: () => navigate("/build-in-public") },
@@ -1670,6 +1671,9 @@ const Landing = () => {
             <div className="border-t border-border pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <p className="text-xs text-muted-foreground">© 2026 Local Hero · Fair by design</p>
               <div className="flex flex-wrap items-center justify-center gap-5">
+                <Link to="/the-idea" className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors">
+                  The idea
+                </Link>
                 <Link to="/hero-token" className="text-[10px] text-muted-foreground/60 hover:text-primary transition-colors">
                   HERO Token paper
                 </Link>

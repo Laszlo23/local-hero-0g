@@ -26,6 +26,7 @@ const APP_TSX_ROUTE_SNIPPETS = [
   'path="auth-flow-debug"',
   'path="/hero-token"',
   'path="/build-in-public"',
+  'path="/the-idea"',
   'path="/report-spot"',
 ] as const;
 

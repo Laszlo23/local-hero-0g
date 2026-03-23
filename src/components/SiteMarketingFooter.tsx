@@ -35,6 +35,7 @@ export function SiteMarketingFooter() {
             </h4>
             <ul className="space-y-2.5">
               {[
+                { label: "The idea", to: "/the-idea" },
                 { label: "How It Works", to: "/#how-it-works" },
                 { label: "Discovery Drops", to: "/#discovery-drops" },
                 { label: "Schools", to: "/#schools" },

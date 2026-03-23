@@ -22,6 +22,7 @@ Web app and backend for **Local Hero** — community quests, profiles, and on-ch
 | Feature | Route / entry | Notes |
 |---------|----------------|--------|
 | **Landing** | `/` | Marketing, ecosystem story, footer nav |
+| **The idea** | `/the-idea` | Short site explaining the product concept (quests, drops, schools, rewards) |
 | **HeroPaper** | `/heropaper` | Long-form narrative / vision |
 | **HERO Token paper** | `/hero-token` | Tokenomics, max supply, multisig & liquidity playbook (from `docs/HERO_TOKEN_TECHNICAL_PAPER.md`) |
 | **Report a spot** | `/report-spot` | Civic heads-up (litter, parks, upkeep) — no account; `POST /public/community-signal` |
