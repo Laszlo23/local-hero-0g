@@ -238,6 +238,7 @@ cd contracts && forge build && forge test
 | [`docs/MOBILE_WEEK3_QA_MATRIX.md`](docs/MOBILE_WEEK3_QA_MATRIX.md) | Device/network test matrix for week 3 mobile verification |
 | [`docs/MOBILE_CI_PIPELINE.md`](docs/MOBILE_CI_PIPELINE.md) | GitHub Actions mobile CI scaffold (web sanity + Android flavors + signed Android + Play internal + iOS TestFlight lane) |
 | [`docs/LAUNCH_READINESS_WORKFLOW.md`](docs/LAUNCH_READINESS_WORKFLOW.md) | One-run launch readiness workflow (quality gates + release artifacts + optional store uploads) |
+| [`docs/GITHUB_RELEASE_SECRETS.md`](docs/GITHUB_RELEASE_SECRETS.md) | GitHub Environments + secret names for Android / Play / iOS (TestFlight) |
 | [`docs/BUILD_IN_PUBLIC.md`](docs/BUILD_IN_PUBLIC.md) | How to edit the Build in Public changelog (`src/content/build-in-public.md`) |
 | [`contracts/README.md`](contracts/README.md) | Solidity contracts & deploy |
 

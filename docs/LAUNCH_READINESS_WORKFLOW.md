@@ -27,6 +27,12 @@ Use **`.github/workflows/launch-readiness.yml`** when you want one manual run th
    - controlled by `run_ios_testflight`
    - performs signed archive/export and uploads to TestFlight
 
+## Where secrets must live
+
+Signing and store jobs use **GitHub Environments** (`mobile-release` or `production-release`, depending on `release_channel`). Put **`ANDROID_*`, `PLAY_*`, and iOS/ASC secrets on that environment** so every job sees them consistently.
+
+See **`docs/GITHUB_RELEASE_SECRETS.md`** for a full checklist and CLI examples.
+
 ## Required secrets
 
 ### Android signing

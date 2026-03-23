@@ -87,6 +87,8 @@ jobs:
     name: Android signed AAB (${{ matrix.flavor }})
     runs-on: ubuntu-latest
     needs: preflight
+    # Must match Play / TestFlight jobs so ANDROID_* secrets live in the same GitHub Environment
+    environment: ${{ inputs.release_channel == 'production' && 'production-release' || 'mobile-release' }}
     strategy:
       fail-fast: false
       matrix:
@@ -291,11 +293,15 @@ jobs:
         run: npm ci
       - name: Sync + build simulator app
         run: npm run mobile:sync:dev && npm run mobile:ios:build:sim
+      - name: Package simulator app artifact
+        run: |
+          cd ios/App/build/Build/Products/Debug-iphonesimulator
+          ditto -c -k --sequesterRsrc --keepParent App.app App-simulator.zip
       - name: Upload simulator artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-simulator-app
-          path: ios/App/build/Build/Products/Debug-iphonesimulator/**
+          path: ios/App/build/Build/Products/Debug-iphonesimulator/App-simulator.zip
           if-no-files-found: error
 
   ios-testflight:

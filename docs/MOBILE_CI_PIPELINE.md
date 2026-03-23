@@ -119,7 +119,7 @@ Manual dispatch examples:
 - Version by input: set `android_version_name=1.4.0`, `android_version_code=140`
 - Version by tag: trigger from tag `v1.5.0` and omit inputs
 
-Required repository secrets:
+This job uses the GitHub Environment **`mobile-release`**, so configure the following as **environment secrets** there (repository secrets also work). Full checklist: **`docs/GITHUB_RELEASE_SECRETS.md`**.
 
 - `ANDROID_KEYSTORE_BASE64` (base64-encoded `.jks`/`.keystore`)
 - `ANDROID_KEYSTORE_PASSWORD`
