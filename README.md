@@ -237,6 +237,7 @@ cd contracts && forge build && forge test
 | [`docs/MOBILE_WEEK3_DEEPLINK_AUTH_QA.md`](docs/MOBILE_WEEK3_DEEPLINK_AUTH_QA.md) | Deep-link/auth implementation notes and QA checklist for mobile week 3 |
 | [`docs/MOBILE_WEEK3_QA_MATRIX.md`](docs/MOBILE_WEEK3_QA_MATRIX.md) | Device/network test matrix for week 3 mobile verification |
 | [`docs/MOBILE_CI_PIPELINE.md`](docs/MOBILE_CI_PIPELINE.md) | GitHub Actions mobile CI scaffold (web sanity + Android flavors + signed Android + Play internal + iOS TestFlight lane) |
+| [`docs/LAUNCH_READINESS_WORKFLOW.md`](docs/LAUNCH_READINESS_WORKFLOW.md) | One-run launch readiness workflow (quality gates + release artifacts + optional store uploads) |
 | [`docs/BUILD_IN_PUBLIC.md`](docs/BUILD_IN_PUBLIC.md) | How to edit the Build in Public changelog (`src/content/build-in-public.md`) |
 | [`contracts/README.md`](contracts/README.md) | Solidity contracts & deploy |
 
