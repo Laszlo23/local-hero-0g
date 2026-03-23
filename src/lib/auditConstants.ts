@@ -8,6 +8,7 @@ export const EXPECTED_AUTH_API_ROUTES = [
   "GET /health",
   "POST /public/community-signal",
   "POST /auth/sync",
+  "POST /me/educational-quest-draft",
   "GET /me/points",
   "POST /me/redeem",
   "GET /me/access-status",

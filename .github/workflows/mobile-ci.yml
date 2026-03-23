@@ -1,0 +1,429 @@
+name: Mobile CI
+
+on:
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+    inputs:
+      android_version_name:
+        description: "Optional Android versionName (e.g. 1.2.3)"
+        required: false
+        type: string
+      android_version_code:
+        description: "Optional Android versionCode (integer)"
+        required: false
+        type: string
+      ios_version_name:
+        description: "Optional iOS short version (e.g. 1.2.3)"
+        required: false
+        type: string
+      ios_build_number:
+        description: "Optional iOS build number (integer)"
+        required: false
+        type: string
+
+jobs:
+  web-sanity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        run: npm test
+
+      - name: Build web assets
+        run: npm run build
+
+  android-flavors:
+    name: Android ${{ matrix.flavor }}
+    runs-on: ubuntu-latest
+    needs: web-sanity
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [dev, staging, prod]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Capacitor sync (${{ matrix.flavor }})
+        run: |
+          if [ "${{ matrix.flavor }}" = "dev" ]; then
+            npm run mobile:sync:dev
+          elif [ "${{ matrix.flavor }}" = "staging" ]; then
+            npm run mobile:sync:staging
+          else
+            npm run mobile:sync:prod
+          fi
+
+      - name: Build Android APK (${{ matrix.flavor }})
+        run: |
+          if [ "${{ matrix.flavor }}" = "dev" ]; then
+            npm run mobile:android:assemble:dev
+          elif [ "${{ matrix.flavor }}" = "staging" ]; then
+            npm run mobile:android:assemble:staging
+          else
+            npm run mobile:android:assemble:prod
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.flavor }}-artifacts
+          path: |
+            android/app/build/outputs/apk/**/*.apk
+          if-no-files-found: warn
+
+  ios-simulator:
+    name: iOS simulator build
+    runs-on: macos-latest
+    needs: web-sanity
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Capacitor sync (dev profile)
+        run: npm run mobile:sync:dev
+
+      - name: Build iOS app for simulator (unsigned)
+        run: npm run mobile:ios:build:sim
+
+      - name: Package simulator app artifact
+        run: |
+          cd ios/App/build/Build/Products/Debug-iphonesimulator
+          ditto -c -k --sequesterRsrc --keepParent App.app App-simulator.zip
+
+      - name: Upload iOS simulator artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-simulator-app
+          path: ios/App/build/Build/Products/Debug-iphonesimulator/App-simulator.zip
+          if-no-files-found: error
+
+  android-signed-release:
+    name: Android signed ${{ matrix.flavor }} AAB
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    needs: web-sanity
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [staging, prod]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ] || [ -z "$ANDROID_KEY_ALIAS" ] || [ -z "$ANDROID_KEY_PASSWORD" ]; then
+            echo "Missing one or more Android signing secrets."
+            exit 1
+          fi
+
+      - name: Decode Android keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/release.keystore
+
+      - name: Capacitor sync (${{ matrix.flavor }})
+        run: |
+          if [ "${{ matrix.flavor }}" = "staging" ]; then
+            npm run mobile:sync:staging
+          else
+            npm run mobile:sync:prod
+          fi
+
+      - name: Resolve Android release version
+        run: |
+          VERSION_NAME_INPUT="${{ inputs.android_version_name }}"
+          VERSION_CODE_INPUT="${{ inputs.android_version_code }}"
+          REF_TYPE="${{ github.ref_type }}"
+          REF_NAME="${{ github.ref_name }}"
+          RUN_NUMBER="${{ github.run_number }}"
+
+          if [ -n "$VERSION_NAME_INPUT" ]; then
+            VERSION_NAME="$VERSION_NAME_INPUT"
+          elif [ "$REF_TYPE" = "tag" ] && echo "$REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            VERSION_NAME="${REF_NAME#v}"
+          else
+            VERSION_NAME="1.0.${RUN_NUMBER}"
+          fi
+
+          if [ -n "$VERSION_CODE_INPUT" ]; then
+            if ! echo "$VERSION_CODE_INPUT" | grep -Eq '^[0-9]+$'; then
+              echo "android_version_code must be an integer."
+              exit 1
+            fi
+            VERSION_CODE="$VERSION_CODE_INPUT"
+          else
+            VERSION_CODE="$RUN_NUMBER"
+          fi
+
+          echo "ANDROID_VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "ANDROID_VERSION_CODE=$VERSION_CODE" >> "$GITHUB_ENV"
+          echo "Resolved Android versionCode=$VERSION_CODE versionName=$VERSION_NAME"
+
+      - name: Build signed AAB (${{ matrix.flavor }})
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/android/app/release.keystore
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "Building Android versionCode=$ANDROID_VERSION_CODE versionName=$ANDROID_VERSION_NAME"
+          if [ "${{ matrix.flavor }}" = "staging" ]; then
+            npm run mobile:android:bundle:staging
+          else
+            npm run mobile:android:bundle:prod
+          fi
+
+      - name: Upload signed AAB artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-${{ matrix.flavor }}-signed-aab
+          path: |
+            android/app/build/outputs/bundle/**/*release*.aab
+          if-no-files-found: error
+
+  android-play-internal:
+    name: Play internal upload ${{ matrix.flavor }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    needs: android-signed-release
+    strategy:
+      fail-fast: false
+      matrix:
+        flavor: [staging, prod]
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: android-${{ matrix.flavor }}-signed-aab
+          path: android-aab
+
+      - name: Validate Play publishing secrets
+        env:
+          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          PLAY_PACKAGE_NAME_STAGING: ${{ secrets.PLAY_PACKAGE_NAME_STAGING }}
+          PLAY_PACKAGE_NAME_PROD: ${{ secrets.PLAY_PACKAGE_NAME_PROD }}
+        run: |
+          if [ -z "$PLAY_SERVICE_ACCOUNT_JSON" ] || [ -z "$PLAY_PACKAGE_NAME_STAGING" ] || [ -z "$PLAY_PACKAGE_NAME_PROD" ]; then
+            echo "Missing Play publishing secrets."
+            exit 1
+          fi
+
+      - name: Upload staging AAB to Play internal
+        if: ${{ matrix.flavor == 'staging' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ secrets.PLAY_PACKAGE_NAME_STAGING }}
+          releaseFiles: android-aab/**/*.aab
+          track: internal
+          status: draft
+
+      - name: Upload prod AAB to Play internal
+        if: ${{ matrix.flavor == 'prod' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: ${{ secrets.PLAY_PACKAGE_NAME_PROD }}
+          releaseFiles: android-aab/**/*.aab
+          track: internal
+          status: draft
+
+  ios-testflight:
+    name: iOS TestFlight upload
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    runs-on: macos-latest
+    needs: web-sanity
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate iOS signing and ASC secrets
+        env:
+          IOS_P12_BASE64: ${{ secrets.IOS_P12_BASE64 }}
+          IOS_P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_PROVISIONING_PROFILE_UUID: ${{ secrets.IOS_PROVISIONING_PROFILE_UUID }}
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_CODE_SIGN_IDENTITY: ${{ secrets.IOS_CODE_SIGN_IDENTITY }}
+          IOS_BUNDLE_IDENTIFIER: ${{ secrets.IOS_BUNDLE_IDENTIFIER }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_PRIVATE_KEY_BASE64: ${{ secrets.ASC_API_PRIVATE_KEY_BASE64 }}
+        run: |
+          if [ -z "$IOS_P12_BASE64" ] || [ -z "$IOS_P12_PASSWORD" ] || [ -z "$IOS_PROVISIONING_PROFILE_BASE64" ] || [ -z "$IOS_PROVISIONING_PROFILE_UUID" ] || [ -z "$IOS_TEAM_ID" ] || [ -z "$IOS_CODE_SIGN_IDENTITY" ] || [ -z "$IOS_BUNDLE_IDENTIFIER" ] || [ -z "$ASC_API_KEY_ID" ] || [ -z "$ASC_API_ISSUER_ID" ] || [ -z "$ASC_API_PRIVATE_KEY_BASE64" ]; then
+            echo "Missing one or more iOS signing/App Store Connect secrets."
+            exit 1
+          fi
+
+      - name: Capacitor sync (prod profile)
+        run: npm run mobile:sync:prod
+
+      - name: Resolve iOS version/build
+        run: |
+          VERSION_NAME_INPUT="${{ inputs.ios_version_name }}"
+          BUILD_NUMBER_INPUT="${{ inputs.ios_build_number }}"
+          REF_TYPE="${{ github.ref_type }}"
+          REF_NAME="${{ github.ref_name }}"
+          RUN_NUMBER="${{ github.run_number }}"
+
+          if [ -n "$VERSION_NAME_INPUT" ]; then
+            VERSION_NAME="$VERSION_NAME_INPUT"
+          elif [ "$REF_TYPE" = "tag" ] && echo "$REF_NAME" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
+            VERSION_NAME="${REF_NAME#v}"
+          else
+            VERSION_NAME="1.0.${RUN_NUMBER}"
+          fi
+
+          if [ -n "$BUILD_NUMBER_INPUT" ]; then
+            if ! echo "$BUILD_NUMBER_INPUT" | grep -Eq '^[0-9]+$'; then
+              echo "ios_build_number must be an integer."
+              exit 1
+            fi
+            BUILD_NUMBER="$BUILD_NUMBER_INPUT"
+          else
+            BUILD_NUMBER="$RUN_NUMBER"
+          fi
+
+          echo "IOS_VERSION_NAME=$VERSION_NAME" >> "$GITHUB_ENV"
+          echo "IOS_BUILD_NUMBER=$BUILD_NUMBER" >> "$GITHUB_ENV"
+          echo "Resolved iOS CFBundleShortVersionString=$VERSION_NAME CFBundleVersion=$BUILD_NUMBER"
+
+      - name: Import signing certificate
+        uses: apple-actions/import-codesign-certs@v3
+        with:
+          p12-file-base64: ${{ secrets.IOS_P12_BASE64 }}
+          p12-password: ${{ secrets.IOS_P12_PASSWORD }}
+
+      - name: Install provisioning profile
+        env:
+          IOS_PROVISIONING_PROFILE_BASE64: ${{ secrets.IOS_PROVISIONING_PROFILE_BASE64 }}
+          IOS_PROVISIONING_PROFILE_UUID: ${{ secrets.IOS_PROVISIONING_PROFILE_UUID }}
+        run: |
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
+          echo "$IOS_PROVISIONING_PROFILE_BASE64" | base64 --decode > "$HOME/Library/MobileDevice/Provisioning Profiles/$IOS_PROVISIONING_PROFILE_UUID.mobileprovision"
+
+      - name: Build iOS archive and export IPA
+        env:
+          IOS_TEAM_ID: ${{ secrets.IOS_TEAM_ID }}
+          IOS_CODE_SIGN_IDENTITY: ${{ secrets.IOS_CODE_SIGN_IDENTITY }}
+          IOS_BUNDLE_IDENTIFIER: ${{ secrets.IOS_BUNDLE_IDENTIFIER }}
+          IOS_PROVISIONING_PROFILE_UUID: ${{ secrets.IOS_PROVISIONING_PROFILE_UUID }}
+        run: |
+          /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $IOS_VERSION_NAME" ios/App/App/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $IOS_BUILD_NUMBER" ios/App/App/Info.plist
+
+          cat > ios/App/ExportOptions.plist <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store</string>
+            <key>signingStyle</key><string>manual</string>
+            <key>teamID</key><string>$IOS_TEAM_ID</string>
+            <key>provisioningProfiles</key>
+            <dict>
+              <key>$IOS_BUNDLE_IDENTIFIER</key><string>$IOS_PROVISIONING_PROFILE_UUID</string>
+            </dict>
+          </dict>
+          </plist>
+          EOF
+
+          xcodebuild \
+            -workspace ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Release \
+            -archivePath ios/App/build/App.xcarchive \
+            -destination "generic/platform=iOS" \
+            DEVELOPMENT_TEAM="$IOS_TEAM_ID" \
+            CODE_SIGN_STYLE=Manual \
+            CODE_SIGN_IDENTITY="$IOS_CODE_SIGN_IDENTITY" \
+            PRODUCT_BUNDLE_IDENTIFIER="$IOS_BUNDLE_IDENTIFIER" \
+            PROVISIONING_PROFILE_SPECIFIER="$IOS_PROVISIONING_PROFILE_UUID" \
+            archive
+
+          xcodebuild -exportArchive \
+            -archivePath ios/App/build/App.xcarchive \
+            -exportOptionsPlist ios/App/ExportOptions.plist \
+            -exportPath ios/App/build/export
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-testflight-ipa
+          path: ios/App/build/export/*.ipa
+          if-no-files-found: error
+
+      - name: Upload to TestFlight
+        env:
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+          ASC_API_PRIVATE_KEY_BASE64: ${{ secrets.ASC_API_PRIVATE_KEY_BASE64 }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/appstoreconnect/private_keys"
+          echo "$ASC_API_PRIVATE_KEY_BASE64" | base64 --decode > "$RUNNER_TEMP/appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8"
+
+          xcrun altool --upload-app \
+            -f ios/App/build/export/App.ipa \
+            -t ios \
+            --apiKey "$ASC_API_KEY_ID" \
+            --apiIssuer "$ASC_API_ISSUER_ID" \
+            --apiKeyPath "$RUNNER_TEMP/appstoreconnect/private_keys"
+
+

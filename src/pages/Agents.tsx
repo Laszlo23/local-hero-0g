@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight, Coins, Crown, DollarSign, Gift, Leaf, Megaphone, Shield, Sparkles, Star, Store, Target, TrendingUp, Users, Zap } from "lucide-react";
 import { StaggerContainer, FadeUpItem, BreathingGlow, FloatingParticle } from "@/components/Animations";
@@ -20,6 +20,8 @@ const MONETIZATION_METHODS = [
 ];
 
 const Agents = () => {
+  const navigate = useNavigate();
+  const mobileDebugEnabled = import.meta.env.DEV || import.meta.env.VITE_ENABLE_MOBILE_DEBUG === "true";
   const [tab, setTab] = useState<"earn" | "tiers">("earn");
 
   return (
@@ -85,6 +87,57 @@ const Agents = () => {
           </span>
         </p>
       </motion.div>
+
+      <motion.button
+        type="button"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.16 }}
+        onClick={() => navigate("/app/create-edu-quest")}
+        className="w-full rounded-2xl border border-primary/25 bg-primary/10 p-4 text-left"
+        whileTap={{ scale: 0.99 }}
+      >
+        <p className="text-xs font-bold uppercase tracking-wider text-primary">Creator tool</p>
+        <p className="font-display text-sm font-bold text-foreground mt-1">Generate educational quest with AI</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          Create a class-ready AR/outdoor draft and save it to Supabase in one flow.
+        </p>
+      </motion.button>
+
+      {mobileDebugEnabled && (
+        <div className="grid grid-cols-1 gap-2">
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            onClick={() => navigate("/app/deep-link-debug")}
+            className="w-full rounded-2xl border border-accent/30 bg-accent/10 p-4 text-left"
+            whileTap={{ scale: 0.99 }}
+          >
+            <p className="text-xs font-bold uppercase tracking-wider text-accent">Mobile QA</p>
+            <p className="font-display text-sm font-bold text-foreground mt-1">Open Deep Link Debug</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Simulate `localhero://` and app links directly on device builds.
+            </p>
+          </motion.button>
+          <motion.button
+            type="button"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.23 }}
+            onClick={() => navigate("/app/auth-flow-debug")}
+            className="w-full rounded-2xl border border-primary/30 bg-primary/10 p-4 text-left"
+            whileTap={{ scale: 0.99 }}
+          >
+            <p className="text-xs font-bold uppercase tracking-wider text-primary">Mobile QA</p>
+            <p className="font-display text-sm font-bold text-foreground mt-1">Open Auth Flow Debug</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Check Privy/auth state, token retrieval, backend access status, and last deep-link event.
+            </p>
+          </motion.button>
+        </div>
+      )}
 
       {/* Tabs */}
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} className="flex gap-1 glass rounded-xl p-1">

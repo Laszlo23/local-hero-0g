@@ -19,6 +19,10 @@ import {
 } from "./storage0g.js";
 import { getAvailablePoints } from "./points.js";
 import {
+  generateEducationalQuestDraft,
+  questDraftRequestSchema,
+} from "./aiQuestDraft.js";
+import {
   getHeroTokenSupplySnapshot,
   isRedeemConfigured,
   mintHeroTokens,
@@ -64,6 +68,11 @@ const communitySignalSchema = z.object({
   description: z.string().trim().min(15).max(4000),
   locationHint: z.string().trim().max(400).optional().nullable(),
   contactEmail: z.string().trim().email().max(200).optional().nullable(),
+});
+
+const educationalQuestDraftBodySchema = questDraftRequestSchema.extend({
+  // Optional hint to force qr token prefix for a class run
+  classCheckpointPrefix: z.string().trim().max(80).optional(),
 });
 
 /** Simple per-IP rate limit for anonymous public submissions */
@@ -223,6 +232,55 @@ router.post("/auth/sync", requirePrivyAuth, async (req: AuthenticatedRequest, re
     res.status(500).json({ error: "Failed to sync auth user" });
   } finally {
     client.release();
+  }
+});
+
+/**
+ * Creator assist: generate a structured educational quest draft using 0G AI.
+ * Returns JSON suitable for inserting into `educational_quests` + `educational_quest_steps`.
+ */
+router.post("/me/educational-quest-draft", requirePrivyAuth, async (req: AuthenticatedRequest, res) => {
+  const parsed = educationalQuestDraftBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid body", details: parsed.error.flatten() });
+    return;
+  }
+  try {
+    const input = parsed.data;
+    const draft = await generateEducationalQuestDraft({
+      titleHint: input.titleHint,
+      ageMin: input.ageMin,
+      ageMax: input.ageMax,
+      subjectTags: input.subjectTags,
+      locationContext: input.locationContext,
+      classSize: input.classSize,
+      durationMinutes: input.durationMinutes,
+      focus: input.focus,
+    });
+
+    // Optional post-process: enforce a checkpoint prefix if caller provided one.
+    if (input.classCheckpointPrefix) {
+      draft.steps = draft.steps.map((s) =>
+        s.evidenceType === "qr_scan"
+          ? {
+              ...s,
+              qrExpected: s.qrExpected?.startsWith("HERO-EDU:")
+                ? s.qrExpected
+                : `HERO-EDU:${input.classCheckpointPrefix}:${s.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").slice(0, 24)}`,
+            }
+          : s
+      );
+    }
+
+    res.json({ ok: true, draft });
+  } catch (error) {
+    console.error("Failed /me/educational-quest-draft:", error);
+    const msg = error instanceof Error ? error.message : "Draft generation failed";
+    if (msg.includes("not configured")) {
+      res.status(503).json({ error: msg });
+      return;
+    }
+    res.status(500).json({ error: msg });
   }
 });
 

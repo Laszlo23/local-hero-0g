@@ -21,6 +21,9 @@ const APP_TSX_ROUTE_SNIPPETS = [
   'path="/app/admin/roles"',
   'path="contracts"',
   'path="redeem"',
+  'path="create-edu-quest"',
+  'path="deep-link-debug"',
+  'path="auth-flow-debug"',
   'path="/hero-token"',
   'path="/report-spot"',
 ] as const;

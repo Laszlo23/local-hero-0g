@@ -457,6 +457,7 @@ export type Database = {
           age_min: number
           bonus_complete: number
           created_at: string
+          creator_device_id: string | null
           id: string
           learning_objectives: Json
           points_per_step: number
@@ -474,6 +475,7 @@ export type Database = {
           age_min?: number
           bonus_complete?: number
           created_at?: string
+          creator_device_id?: string | null
           id?: string
           learning_objectives?: Json
           points_per_step?: number
@@ -491,6 +493,7 @@ export type Database = {
           age_min?: number
           bonus_complete?: number
           created_at?: string
+          creator_device_id?: string | null
           id?: string
           learning_objectives?: Json
           points_per_step?: number

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Local Hero</string>
+    <string name="title_activity_main">Local Hero</string>
+    <string name="package_name">space.localhero.app</string>
+    <string name="custom_url_scheme">space.localhero.app</string>
+</resources>

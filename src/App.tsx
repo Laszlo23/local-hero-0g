@@ -8,6 +8,7 @@ import { lazy, Suspense } from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { PrivyProvider } from "@privy-io/react-auth";
 import { getDefault0gChain, getSupported0gChains } from "@/lib/zeroGChains";
+import DeepLinkHandler from "@/components/DeepLinkHandler";
 
 // Eager: landing page (critical path)
 import Landing from "./pages/Landing";
@@ -18,6 +19,9 @@ const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const HeroPaper = lazy(() => import("./pages/HeroPaper"));
 const HeroTokenPaper = lazy(() => import("./pages/HeroTokenPaper"));
 const ReportSpot = lazy(() => import("./pages/ReportSpot"));
+const CreateEducationalQuest = lazy(() => import("./pages/CreateEducationalQuest"));
+const DeepLinkDebug = lazy(() => import("./pages/DeepLinkDebug"));
+const AuthFlowDebug = lazy(() => import("./pages/AuthFlowDebug"));
 const WalletOnboarding = lazy(() => import("./pages/WalletOnboarding"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const Install = lazy(() => import("./pages/Install"));
@@ -80,6 +84,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
+          <DeepLinkHandler />
           <AuthProvider>
             <Suspense fallback={<LazyFallback />}>
               <Routes>
@@ -115,6 +120,9 @@ const App = () => (
                   <Route path="storm" element={<TreasureStorm />} />
                   <Route path="campaign" element={<Campaign />} />
                   <Route path="agents" element={<Agents />} />
+                  <Route path="create-edu-quest" element={<CreateEducationalQuest />} />
+                  <Route path="deep-link-debug" element={<DeepLinkDebug />} />
+                  <Route path="auth-flow-debug" element={<AuthFlowDebug />} />
                 </Route>
                 <Route path="/app/ar" element={<ProtectedRoute><ARQuest /></ProtectedRoute>} />
                 <Route path="/app/admin/challenges" element={<ProtectedRoute><AdminChallenges /></ProtectedRoute>} />

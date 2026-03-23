@@ -82,6 +82,7 @@ Web app and backend for **Local Hero** — community quests, profiles, and on-ch
 | `GET` | `/health` | — | Liveness |
 | `POST` | `/public/community-signal` | — | Anonymous place / cleanup heads-ups (rate-limited) |
 | `POST` | `/auth/sync` | Privy JWT | Sync user + wallet into Postgres |
+| `POST` | `/me/educational-quest-draft` | Privy | Generate a structured class-quest draft via configured 0G AI gateway |
 | `GET` | `/me/points` | Privy | Spendable points, redeem config, optional on-chain supply snapshot |
 | `POST` | `/me/redeem` | Privy | Points → HERO mint (when configured) |
 | `GET` | `/me/access-status` | Privy | Onboarding / wallet flags |
@@ -127,6 +128,33 @@ npm install
 npm run dev
 ```
 
+## Mobile (Capacitor) quick start
+
+Capacitor is initialized in this repo with:
+
+- `appId`: `space.localhero.app`
+- `appName`: `Local Hero`
+- native projects: `ios/` and `android/`
+
+Useful commands:
+
+```sh
+# build web assets + sync to native
+npm run mobile:sync
+
+# open native projects in Xcode / Android Studio
+npm run mobile:ios
+npm run mobile:android
+```
+
+Optional live-reload from Vite dev server:
+
+```sh
+CAPACITOR_DEV_SERVER_URL=http://<your-lan-ip>:8080 npm run mobile:ios
+```
+
+(`capacitor.config.ts` reads `CAPACITOR_DEV_SERVER_URL` and enables cleartext dev server mode.)
+
 ## Quick start — API
 
 ```sh
@@ -168,6 +196,21 @@ After **`003_community_signals.sql`**, public form at **`/report-spot`** works a
 | `npm run dev` | Vite dev server |
 | `npm run build` | Production build (PWA precache) |
 | `npm run lint` | ESLint |
+| `npm run mobile:sync` | Build + `cap sync` (updates iOS/Android web assets + plugins) |
+| `npm run mobile:copy` | Build + `cap copy` (assets only) |
+| `npm run mobile:sync:dev` | Sync with `space.localhero.app.dev` + app name `Local Hero Dev` |
+| `npm run mobile:sync:staging` | Sync with `space.localhero.app.staging` + app name `Local Hero Staging` |
+| `npm run mobile:sync:prod` | Sync with production app id/name |
+| `npm run mobile:ios` | Build/sync and open Xcode project |
+| `npm run mobile:android` | Build/sync and open Android Studio project |
+| `npm run mobile:run:ios` | Build/sync and run on iOS target |
+| `npm run mobile:run:android` | Build/sync and run on Android target |
+| `npm run mobile:android:assemble:dev` | Build Android dev flavor debug APK |
+| `npm run mobile:android:assemble:staging` | Build Android staging flavor release APK |
+| `npm run mobile:android:assemble:prod` | Build Android prod flavor release APK |
+| `npm run mobile:android:bundle:staging` | Build Android staging release AAB |
+| `npm run mobile:android:bundle:prod` | Build Android prod release AAB |
+| `npm run mobile:ios:build:sim` | Build unsigned iOS simulator app (CI/local verification) |
 | `npm test` | Vitest (agents, API route audit, contract surface, App routes) |
 | `npm run test:contracts` | Foundry tests |
 | `npm run test:all` | Vitest + Foundry |
@@ -188,6 +231,11 @@ cd contracts && forge build && forge test
 | [`docs/HERO_TOKEN_TECHNICAL_PAPER.md`](docs/HERO_TOKEN_TECHNICAL_PAPER.md) | Token cap, multisig, liquidity (also **`/hero-token`**) |
 | [`docs/COMMUNITY_SIGNALS.md`](docs/COMMUNITY_SIGNALS.md) | Public heads-up reports & `community_signals` table |
 | [`docs/EDUCATIONAL_AR_QUESTS.md`](docs/EDUCATIONAL_AR_QUESTS.md) | Plan: class-sized educational AR + real-world / plant quests for creators |
+| [`docs/MOBILE_APP_STORE_LAUNCH_PLAN.md`](docs/MOBILE_APP_STORE_LAUNCH_PLAN.md) | Week-by-week plan to ship iOS + Android store apps via Capacitor |
+| [`docs/MOBILE_CAPACITOR_WEEK2_SETUP.md`](docs/MOBILE_CAPACITOR_WEEK2_SETUP.md) | Current Capacitor bootstrap status, commands, and pre-production checklist |
+| [`docs/MOBILE_WEEK3_DEEPLINK_AUTH_QA.md`](docs/MOBILE_WEEK3_DEEPLINK_AUTH_QA.md) | Deep-link/auth implementation notes and QA checklist for mobile week 3 |
+| [`docs/MOBILE_WEEK3_QA_MATRIX.md`](docs/MOBILE_WEEK3_QA_MATRIX.md) | Device/network test matrix for week 3 mobile verification |
+| [`docs/MOBILE_CI_PIPELINE.md`](docs/MOBILE_CI_PIPELINE.md) | GitHub Actions mobile CI scaffold (web sanity + Android flavors + signed Android + Play internal + iOS TestFlight lane) |
 | [`contracts/README.md`](contracts/README.md) | Solidity contracts & deploy |
 
 ---

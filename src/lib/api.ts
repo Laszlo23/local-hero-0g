@@ -165,6 +165,53 @@ export interface SubmitCommunitySignalResponse {
   id: string;
 }
 
+export interface EducationalQuestDraftStep {
+  title: string;
+  instruction: string;
+  evidenceType: "none" | "field_observation" | "qr_scan" | "quiz" | "photo";
+  arVisual: "tree" | "book" | "chest" | "leaf" | "water" | "recycle";
+  arEmoji: string;
+  arX: number;
+  arY: number;
+  qrExpected?: string;
+  quizPrompt?: string;
+  quizOptionA?: string;
+  quizOptionB?: string;
+  quizCorrect?: "a" | "b";
+  pointsOverride?: number;
+}
+
+export interface EducationalQuestDraft {
+  slug: string;
+  title: string;
+  summary: string;
+  ageMin: number;
+  ageMax: number;
+  learningObjectives: string[];
+  subjectTags: string[];
+  questType: "ar_overlay" | "field_observation" | "qr_trail" | "photo_evidence" | "hybrid";
+  pointsPerStep: number;
+  bonusComplete: number;
+  steps: EducationalQuestDraftStep[];
+}
+
+export interface GenerateEducationalQuestDraftPayload {
+  titleHint: string;
+  ageMin: number;
+  ageMax: number;
+  subjectTags: string[];
+  locationContext: string;
+  classSize?: number;
+  durationMinutes?: number;
+  focus: string;
+  classCheckpointPrefix?: string;
+}
+
+export interface GenerateEducationalQuestDraftResponse {
+  ok: boolean;
+  draft: EducationalQuestDraft;
+}
+
 /** No auth — public heads-up for organizers (rate-limited server-side). */
 export async function submitCommunitySignal(
   payload: SubmitCommunitySignalPayload
@@ -191,6 +238,17 @@ export async function submitCommunitySignal(
     throw new HttpError(msg, response.status);
   }
   return (await response.json()) as SubmitCommunitySignalResponse;
+}
+
+export async function generateEducationalQuestDraft(
+  accessToken: string,
+  payload: GenerateEducationalQuestDraftPayload
+): Promise<GenerateEducationalQuestDraftResponse> {
+  return apiRequest<GenerateEducationalQuestDraftResponse>("/me/educational-quest-draft", {
+    method: "POST",
+    accessToken,
+    body: JSON.stringify(payload),
+  });
 }
 
 export async function uploadStorageFile(accessToken: string, file: File): Promise<StorageUploadResponse> {

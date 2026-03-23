@@ -17,6 +17,7 @@ const SERVER_ROUTE_SNIPPETS: Record<(typeof EXPECTED_AUTH_API_ROUTES)[number], s
   "GET /health": `router.get("/health"`,
   "POST /public/community-signal": `router.post("/public/community-signal"`,
   "POST /auth/sync": `router.post("/auth/sync"`,
+  "POST /me/educational-quest-draft": `router.post("/me/educational-quest-draft"`,
   "GET /me/points": `router.get("/me/points"`,
   "POST /me/redeem": `router.post("/me/redeem"`,
   "GET /me/access-status": `router.get("/me/access-status"`,

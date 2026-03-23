@@ -27,6 +27,10 @@ const envSchema = z.object({
   /** Minimum points per single redeem */
   MIN_REDEEM_POINTS: z.coerce.number().int().positive().default(100),
   HERO_CHAIN_ID: z.coerce.number().int().default(16602),
+  /** 0G AI / compatible chat endpoint for structured creator quest drafts */
+  OG_AI_API_URL: z.string().url().optional(),
+  OG_AI_API_KEY: z.string().optional(),
+  OG_AI_MODEL: z.string().default("google/gemini-2.0-flash-001"),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -52,4 +56,7 @@ export const config = {
   pointsPerHeroToken: parsed.data.POINTS_PER_HERO_TOKEN,
   minRedeemPoints: parsed.data.MIN_REDEEM_POINTS,
   heroChainId: parsed.data.HERO_CHAIN_ID,
+  ogAiApiUrl: parsed.data.OG_AI_API_URL,
+  ogAiApiKey: parsed.data.OG_AI_API_KEY,
+  ogAiModel: parsed.data.OG_AI_MODEL,
 };
