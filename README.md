@@ -1,8 +1,39 @@
-# Local Hero (0G)
+# Local Hero
 
-Web app and backend for **Local Hero** — community quests, profiles, and on-chain rewards on **[0G](https://0g.ai/)** (Galileo testnet / mainnet).
+**Turn your neighborhood into a playground for good.**
 
-## Stack
+Local Hero is a community-first product for **real-world quests**, **discovery drops**, **school AR trails**, and **verifiable rewards**. We start from the map—not the feed—so play, learning, and civic care can share one loop. Players earn **HERO points** for showing up and contributing; when the stack is configured, points can bridge to on-chain **HERO** on **[0G](https://0g.ai/)** with transparent tokenomics and open documentation.
+
+---
+
+## Why this project
+
+Most digital “engagement” forgets *where* you are. Local Hero is built for:
+
+- **Explorers** — quests, challenges, and reasons to move through real places  
+- **Schools & creators** — class-sized educational AR trails and published quests  
+- **Communities** — discovery drops, QR moments, and lightweight civic signal (e.g. [**Report a spot**](docs/COMMUNITY_SIGNALS.md) for parks, litter, upkeep—no account required)  
+- **Builders & holders** — contracts, redeem paths, and a [**Build in Public**](docs/BUILD_IN_PUBLIC.md) changelog so progress stays inspectable  
+
+**New here?** Read the in-app story at **`/the-idea`** (product concept), **`/heropaper`** (long-form vision), and **`/hero-token`** (HERO token paper).
+
+---
+
+## What you’ll find in this repo
+
+| Area | What it is |
+|------|------------|
+| **Web + PWA** | Vite/React app: marketing site, auth, and logged-in `/app/*` experience |
+| **API** | `server/` — Express + Postgres: auth sync, points, redeem, uploads, public report-a-spot |
+| **Mobile** | Capacitor **`ios/`** & **`android/`** — same web bundle, native shells, store-ready lanes (see mobile docs) |
+| **On-chain** | `contracts/` — **HeroToken** (ERC-20), badges (ERC-1155), soulbound ID (ERC-721); Foundry tests |
+| **Data & edge** | Supabase for quests, feed, challenges, drops (where configured) |
+
+Auth is **[Privy](https://privy.io/)** (email, Google, Apple, SMS + optional embedded EVM wallet). We bias toward **clarity over crypto jargon** for first-time players.
+
+---
+
+## Stack (technical)
 
 | Layer | Tech |
 |-------|------|
