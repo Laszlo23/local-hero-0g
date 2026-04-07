@@ -4,6 +4,10 @@ This document is for **0G ecosystem / Guild / growth-fund reviewers**: what we b
 
 **External programs:** Application flows and eligibility live on 0G channels (e.g. [0G ecosystem program](https://0g.ai/blog/0g-ecosystem-program), [Guild](http://guild.0gfoundation.ai/)). This file is **evidence and technical clarity** inside the repo—not a substitute for submitting forms, demo URLs, team bios, or funding asks.
 
+**Submission checklist (off-repo):** Use [`docs/GRANT_APPLICATION_PACK.md`](GRANT_APPLICATION_PACK.md) so forms, demo links, and milestones stay consistent with this brief.
+
+**Continuous integration:** Default branch runs [GitHub Actions CI](https://github.com/Laszlo23/local-hero-0g/actions/workflows/ci.yml) (frontend lint/test/build, server typecheck, Foundry). A green run supports reviewer confidence; it does not guarantee funding.
+
 ---
 
 ## One-paragraph pitch
@@ -60,6 +64,16 @@ Storage defaults (server): see [`server/.env.example`](../server/.env.example) (
 - **Not implied by that alone:** Traffic is not required to hit 0G’s network until you configure `OG_AI_API_URL` to a 0G Compute (or other) OpenAI-compatible base URL.
 - **Grant milestone suggestion:** Document in [DEPLOYMENTS.md](DEPLOYMENTS.md) once a **0G Compute** inference base URL is used in production/staging; link to [Compute overview](https://docs.0g.ai/docs/developer-hub/building-on-0g/compute-network/overview).
 
+### Connecting quest-draft AI to 0G Compute (optional, stronger AI-on-0G story)
+
+The server calls **`{OG_AI_API_URL}/chat/completions`** with an OpenAI-style JSON body ([`server/src/aiQuestDraft.ts`](../server/src/aiQuestDraft.ts)). To route traffic through **0G Compute Network** inference:
+
+1. Follow [0G Compute — inference](https://docs.0g.ai/docs/developer-hub/building-on-0g/compute-network/inference) and [compute overview](https://docs.0g.ai/docs/developer-hub/building-on-0g/compute-network/overview) to obtain an **OpenAI-compatible API base URL** and API key from your 0G Compute setup.
+2. Set **`OG_AI_API_URL`** to that base (no trailing slash; many providers use a path ending in `/v1` so the final URL becomes `.../v1/chat/completions`).
+3. Set **`OG_AI_API_KEY`** and **`OG_AI_MODEL`** per the provider’s requirements.
+4. Smoke-test **`POST /me/educational-quest-draft`** from a logged-in client.
+5. Record the **public hostname only** (no secrets) in [DEPLOYMENTS.md](DEPLOYMENTS.md) under “Quest-draft AI” / “0G Compute inference”.
+
 ---
 
 ## Suggested milestones (template for proposals)
@@ -91,6 +105,7 @@ Adapt numbers and dates to your application.
 - [Storage SDK](https://docs.0g.ai/docs/developer-hub/building-on-0g/storage/sdk)  
 - [Compute network overview](https://docs.0g.ai/docs/developer-hub/building-on-0g/compute-network/overview)  
 - [AI context for builders](https://docs.0g.ai/docs/ai-context)  
+- [Inference (Compute)](https://docs.0g.ai/docs/developer-hub/building-on-0g/compute-network/inference)  
 
 ---
 

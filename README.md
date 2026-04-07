@@ -1,5 +1,7 @@
 # Local Hero
 
+[![CI](https://github.com/Laszlo23/local-hero-0g/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Laszlo23/local-hero-0g/actions/workflows/ci.yml)
+
 **Turn your neighborhood into a playground for good.**
 
 Local Hero is a community-first product for **real-world quests**, **discovery drops**, **school AR trails**, and **verifiable rewards**. We start from the map—not the feed—so play, learning, and civic care can share one loop. Players earn **HERO points** for showing up and contributing; when the stack is configured, points can bridge to on-chain **HERO** on **[0G](https://0g.ai/)** with transparent tokenomics and open documentation.
@@ -260,7 +262,7 @@ cd contracts && forge build && forge test
 
 ### Continuous integration
 
-On every push or pull request to **`main`** / **`master`**, [GitHub Actions](.github/workflows/ci.yml) runs:
+Status for **`main`**: badge at the top of this file. On every push or pull request to **`main`** / **`master`**, [GitHub Actions](.github/workflows/ci.yml) runs:
 
 - **Frontend:** `npm ci`, `npm run lint`, `npm run test`, `npm run build` (with a placeholder `VITE_PRIVY_APP_ID` for the build step only)
 - **API:** `server/` — `npm ci`, `npm run typecheck`
@@ -273,6 +275,7 @@ On every push or pull request to **`main`** / **`master`**, [GitHub Actions](.gi
 | Doc | Topic |
 |-----|--------|
 | [`docs/0G_ECOSYSTEM_GRANT.md`](docs/0G_ECOSYSTEM_GRANT.md) | 0G ecosystem grant brief: integrations, milestones, official doc links |
+| [`docs/GRANT_APPLICATION_PACK.md`](docs/GRANT_APPLICATION_PACK.md) | Off-repo checklist: demo, team, milestones, links to 0G programs |
 | [`docs/DEPLOYMENTS.md`](docs/DEPLOYMENTS.md) | Contract addresses + explorer links (fill after deploy) |
 | [`docs/AGENTS_AND_OPERATIONS.md`](docs/AGENTS_AND_OPERATIONS.md) | Overmind agents, 777 program, Supabase roles |
 | [`docs/AUDIT_CHECKLIST.md`](docs/AUDIT_CHECKLIST.md) | Release / security checklist |

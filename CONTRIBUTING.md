@@ -21,6 +21,7 @@ Thanks for helping improve Local Hero. This repo combines a Vite/React client, a
 ## Docs
 
 - Product and 0G integration summary: [`docs/0G_ECOSYSTEM_GRANT.md`](docs/0G_ECOSYSTEM_GRANT.md)
+- Grant submission checklist (forms, demo, deploys): [`docs/GRANT_APPLICATION_PACK.md`](docs/GRANT_APPLICATION_PACK.md)
 - Changelog for “Build in Public”: [`docs/BUILD_IN_PUBLIC.md`](docs/BUILD_IN_PUBLIC.md)
 
 ## Questions
