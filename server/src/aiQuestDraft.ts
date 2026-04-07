@@ -44,7 +44,9 @@ export const questDraftResponseSchema = z.object({
 
 function ensureAiConfigured() {
   if (!config.ogAiApiUrl || !config.ogAiApiKey) {
-    throw new Error("0G AI is not configured");
+    throw new Error(
+      "Quest draft AI is not configured (set OG_AI_API_URL and OG_AI_API_KEY). Endpoint must be OpenAI-compatible /v1/chat/completions, e.g. 0G Compute or another gateway."
+    );
   }
 }
 

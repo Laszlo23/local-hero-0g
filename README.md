@@ -31,6 +31,12 @@ Most digital “engagement” forgets *where* you are. Local Hero is built for:
 
 Auth is **[Privy](https://privy.io/)** (email, Google, Apple, SMS + optional embedded EVM wallet). We bias toward **clarity over crypto jargon** for first-time players.
 
+### Building on 0G
+
+- **Chain:** HERO token, badges, and soulbound identity target **0G** (Galileo testnet and mainnet); see [`src/lib/zeroGChains.ts`](src/lib/zeroGChains.ts) and [`contracts/README.md`](contracts/README.md).
+- **Storage:** Optional decentralized file flow via **0G Storage** and [`@0gfoundation/0g-ts-sdk`](https://docs.0g.ai/docs/developer-hub/building-on-0g/storage/sdk) in `server/src/storage0g.ts`.
+- **Grant / reviewer brief:** [`docs/0G_ECOSYSTEM_GRANT.md`](docs/0G_ECOSYSTEM_GRANT.md) — integration map, milestones, and links to [0G developer docs](https://docs.0g.ai/docs/developer-hub/getting-started). On-chain addresses live in [`docs/DEPLOYMENTS.md`](docs/DEPLOYMENTS.md) once filled.
+
 ---
 
 ## Stack (technical)
@@ -258,6 +264,8 @@ cd contracts && forge build && forge test
 
 | Doc | Topic |
 |-----|--------|
+| [`docs/0G_ECOSYSTEM_GRANT.md`](docs/0G_ECOSYSTEM_GRANT.md) | 0G ecosystem grant brief: integrations, milestones, official doc links |
+| [`docs/DEPLOYMENTS.md`](docs/DEPLOYMENTS.md) | Contract addresses + explorer links (fill after deploy) |
 | [`docs/AGENTS_AND_OPERATIONS.md`](docs/AGENTS_AND_OPERATIONS.md) | Overmind agents, 777 program, Supabase roles |
 | [`docs/AUDIT_CHECKLIST.md`](docs/AUDIT_CHECKLIST.md) | Release / security checklist |
 | [`docs/POINTS_AND_TOKENS.md`](docs/POINTS_AND_TOKENS.md) | HERO points + token redeem |
@@ -272,6 +280,7 @@ cd contracts && forge build && forge test
 | [`docs/LAUNCH_READINESS_WORKFLOW.md`](docs/LAUNCH_READINESS_WORKFLOW.md) | One-run launch readiness workflow (quality gates + release artifacts + optional store uploads) |
 | [`docs/GITHUB_RELEASE_SECRETS.md`](docs/GITHUB_RELEASE_SECRETS.md) | GitHub Environments + secret names for Android / Play / iOS (TestFlight) |
 | [`docs/BUILD_IN_PUBLIC.md`](docs/BUILD_IN_PUBLIC.md) | How to edit the Build in Public changelog (`src/content/build-in-public.md`) |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How to contribute (tests, scope, local setup pointers) |
 | [`contracts/README.md`](contracts/README.md) | Solidity contracts & deploy |
 
 ---

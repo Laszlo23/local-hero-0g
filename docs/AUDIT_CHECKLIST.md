@@ -47,6 +47,18 @@ Vitest `appFlows.test.ts` checks critical paths still exist in `App.tsx`.
 - [ ] `npm audit` reviewed for critical issues
 - [ ] OpenZeppelin contracts pinned via Foundry lockfile
 
+## 0G ecosystem / grant review
+
+Use before sharing the repo with ecosystem or grant reviewers. Details: **`docs/0G_ECOSYSTEM_GRANT.md`**.
+
+- [ ] **`docs/DEPLOYMENTS.md`** updated with real contract addresses and explorer links for each claimed network
+- [ ] **Testnet/mainnet:** `VITE_0G_NETWORK` and RPC envs match deployed contracts; explorers show verified source where applicable
+- [ ] **0G Storage:** `OG_0G_*` funded; `POST /me/storage/upload` + `GET /storage/files/:rootHash` smoke-tested from staging
+- [ ] **README:** “Building on 0G” subsection present and points to grant brief + deployments register
+- [ ] **Quest-draft AI:** `OG_AI_API_URL` / `OG_AI_API_KEY` documented for ops (host only in grant pack); behavior matches **OpenAI-compatible** API—note in brief if using **0G Compute** inference vs other gateway
+- [ ] **Optional milestone:** If claiming 0G Compute, record inference base URL (redacted) and date in **`docs/DEPLOYMENTS.md`** environment table
+- [ ] **Public copy:** Investor/marketing diagrams match implementation (0G Chain + 0G Storage, not generic IPFS unless true)
+
 ---
 
 **Not full security audit:** This checklist is operational. For token launches, get an external smart-contract audit.

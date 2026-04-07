@@ -236,7 +236,8 @@ router.post("/auth/sync", requirePrivyAuth, async (req: AuthenticatedRequest, re
 });
 
 /**
- * Creator assist: generate a structured educational quest draft using 0G AI.
+ * Creator assist: generate a structured educational quest draft via an OpenAI-compatible LLM API.
+ * Configure OG_AI_API_URL + OG_AI_API_KEY (e.g. 0G Compute inference base URL or another /v1 provider).
  * Returns JSON suitable for inserting into `educational_quests` + `educational_quest_steps`.
  */
 router.post("/me/educational-quest-draft", requirePrivyAuth, async (req: AuthenticatedRequest, res) => {

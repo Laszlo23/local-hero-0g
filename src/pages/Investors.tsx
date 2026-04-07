@@ -210,7 +210,7 @@ const ArchitectureDiagram = () => (
       {[
         { y: 40, label: "APPLICATION LAYER", items: ["Mobile PWA", "Quest Engine", "AR Mode", "NFT Gallery"] },
         { y: 140, label: "PROTOCOL LAYER", items: ["Smart Contracts", "Verification Engine", "Reward Distribution", "DAO Governance"] },
-        { y: 240, label: "INFRASTRUCTURE LAYER", items: ["0G Chain", "IPFS Storage", "AI Compute", "Cross-chain Bridge"] },
+        { y: 240, label: "INFRASTRUCTURE LAYER", items: ["0G Chain", "0G Storage", "AI Compute", "Bridges (user)"] },
       ].map((layer, li) => (
         <g key={li}>
           {/* Layer background */}

@@ -27,7 +27,7 @@ const envSchema = z.object({
   /** Minimum points per single redeem */
   MIN_REDEEM_POINTS: z.coerce.number().int().positive().default(100),
   HERO_CHAIN_ID: z.coerce.number().int().default(16602),
-  /** 0G AI / compatible chat endpoint for structured creator quest drafts */
+  /** OpenAI-compatible chat base URL for creator quest drafts (optional 0G Compute or other /v1 provider) */
   OG_AI_API_URL: z.string().url().optional(),
   OG_AI_API_KEY: z.string().optional(),
   OG_AI_MODEL: z.string().default("google/gemini-2.0-flash-001"),
