@@ -258,6 +258,14 @@ After **`003_community_signals.sql`**, public form at **`/report-spot`** works a
 cd contracts && forge build && forge test
 ```
 
+### Continuous integration
+
+On every push or pull request to **`main`** / **`master`**, [GitHub Actions](.github/workflows/ci.yml) runs:
+
+- **Frontend:** `npm ci`, `npm run lint`, `npm run test`, `npm run build` (with a placeholder `VITE_PRIVY_APP_ID` for the build step only)
+- **API:** `server/` — `npm ci`, `npm run typecheck`
+- **Contracts:** `forge build` and `forge test` (with git submodules for Foundry deps)
+
 ---
 
 ## Documentation index
